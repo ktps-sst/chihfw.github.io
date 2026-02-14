@@ -1,845 +1,996 @@
-<!DOCTYPE html>
-<html lang="zh-HK">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>初小學生高頻詞語表</title>
-    <!-- 引入 Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- 引入 Babel 用於解析 JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  BookOpen, 
+  Gamepad2, 
+  Mic, 
+  Volume2, 
+  ArrowLeft, 
+  Star, 
+  Award, 
+  RefreshCcw, 
+  Home,
+  CheckCircle,
+  XCircle,
+  Smile,
+  Frown,
+  User,
+  Utensils,
+  Trees,
+  Car,
+  Shirt,
+  School,
+  Building,
+  Ticket,
+  Zap,
+  Box,
+  Heart,
+  AlertCircle,
+  Pencil,
+  GraduationCap,
+  Palette,
+  Music
+} from 'lucide-react';
 
-    <!-- 設定 Import Map 以便直接引用 React 和圖標庫 -->
-    <script type="importmap">
-    {
-      "imports": {
-        "react": "https://esm.sh/react@18.2.0",
-        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-        "lucide-react": "https://esm.sh/lucide-react@0.292.0"
+// --- 課程資料庫 (完整整合悅讀‧悅寫意詞彙) ---
+const curriculumData = {
+  1: {
+    title: "一年級 (P1)",
+    color: "bg-emerald-500",
+    themes: [
+      {
+        id: "p1-family",
+        name: "家庭篇",
+        en: "Family",
+        desc: "家人 父母 爸爸 媽媽...",
+        icon: <Home className="w-8 h-8" />,
+        color: "bg-orange-100 border-orange-400",
+        words: [
+          { char: "家人", jyut: "gaa1 jan4", en: "Family Members", emoji: "👨‍👩‍👧‍👦", sentence: "我愛我的家人，我們每天都快樂地生活在一起。" },
+          { char: "父母", jyut: "fu6 mou5", en: "Parents", emoji: "👫", sentence: "父母辛勤地工作，只為了給我們一個溫暖的家。" },
+          { char: "爸爸", jyut: "baa4 baa1", en: "Father", emoji: "👨", sentence: "爸爸每天下班回家，都會陪我玩遊戲。" },
+          { char: "媽媽", jyut: "maa4 maa1", en: "Mother", emoji: "👩", sentence: "媽媽煮的飯菜很美味，大家都喜歡吃。" },
+          { char: "祖父", jyut: "zou2 fu6", en: "Grandfather (Paternal)", emoji: "👴", sentence: "祖父喜歡在公園裡散步和看報紙。" },
+          { char: "祖母", jyut: "zou2 mou5", en: "Grandmother (Paternal)", emoji: "👵", sentence: "祖母常常講有趣的故事給我們聽。" },
+          { char: "外婆", jyut: "ngoi6 po4", en: "Grandmother (Maternal)", emoji: "👵", sentence: "外婆織的毛衣很溫暖，我很喜歡穿。" },
+          { char: "外公", jyut: "ngoi6 gung1", en: "Grandfather (Maternal)", emoji: "👴", sentence: "外公教我寫書法，我覺得很有趣。" },
+          { char: "女兒", jyut: "neoi5 ji4", en: "Daughter", emoji: "👧", sentence: "她是父母的乖女兒，經常幫忙做家務。" },
+          { char: "兒子", jyut: "ji4 zi2", en: "Son", emoji: "👦", sentence: "兒子很聽話，每天都會準時完成功課。" },
+          { char: "門窗", jyut: "mun4 coeng1", en: "Doors and Windows", emoji: "🪟", sentence: "出門前要檢查門窗是否已經關好。" },
+          { char: "地板", jyut: "dei6 baan2", en: "Floor", emoji: "🪵", sentence: "妹妹坐在地板上玩積木，玩得很開心。" },
+          { char: "桌子", jyut: "zoek3 zi2", en: "Table", emoji: "🪑", sentence: "桌子上放著一瓶美麗的鮮花。" },
+          { char: "地上", jyut: "dei6 soeng6", en: "On the ground", emoji: "👇", sentence: "請不要把垃圾扔在地上，要保持清潔。" },
+          { char: "房間", jyut: "fong4 gaan1", en: "Room", emoji: "🏠", sentence: "我的房間裡有很多圖書和玩具。" },
+          { char: "功課", jyut: "gung1 fo3", en: "Homework", emoji: "📝", sentence: "做完功課後，我才可以看電視。" },
+          { char: "看書", jyut: "hon3 syu1", en: "Reading", emoji: "📖", sentence: "我喜歡坐在沙發上安靜地看書。" },
+          { char: "起牀", jyut: "hei2 cong4", en: "Wake up", emoji: "🥱", sentence: "每天早上七時，我準時起牀上學。" },
+          { char: "休息", jyut: "jau1 sik1", en: "Rest", emoji: "🛋️", sentence: "工作了一整天，爸爸需要在沙發上休息。" },
+          { char: "吃飯", jyut: "hek3 faan6", en: "Eat rice/meal", emoji: "🍚", sentence: "我們一家人圍在一起開心地吃飯。" },
+          { char: "打掃", jyut: "daa2 sou3", en: "Clean up", emoji: "🧹", sentence: "週末我們會一起打掃房子，保持整潔。" },
+          { char: "做飯", jyut: "zou6 faan6", en: "Cook", emoji: "🍳", sentence: "媽媽正在廚房裡忙著做飯給我們吃。" },
+          { char: "晚飯", jyut: "maan5 faan6", en: "Dinner", emoji: "🍲", sentence: "今天的晚飯很豐富，有魚也有菜。" },
+          { char: "早餐", jyut: "zou2 caan1", en: "Breakfast", emoji: "🥪", sentence: "吃過營養的早餐，我便充滿活力地上學去。" },
+          { char: "早上", jyut: "zou2 soeng6", en: "Morning", emoji: "🌅", sentence: "早上的空氣很清新，令人精神爽利。" },
+          { char: "中午", jyut: "zung1 ng5", en: "Noon", emoji: "☀️", sentence: "中午的時候，太陽高高掛在天空上。" },
+          { char: "下午", jyut: "haa6 ng5", en: "Afternoon", emoji: "🌇", sentence: "下午放學後，我會去公園玩一會兒。" },
+          { char: "晚上", jyut: "maan5 soeng6", en: "Night", emoji: "🌙", sentence: "晚上的時候，星星在天空中閃閃發光。" }
+        ]
+      },
+      {
+        id: "p1-school",
+        name: "學校篇",
+        en: "School",
+        desc: "老師 校長 同學 學生...",
+        icon: <School className="w-8 h-8" />,
+        color: "bg-blue-100 border-blue-400",
+        words: [
+          { char: "老師", jyut: "lou5 si1", en: "Teacher", emoji: "👩‍🏫", sentence: "老師耐心地教導我們讀書和寫字。" },
+          { char: "校長", jyut: "haau6 zoeng2", en: "Principal", emoji: "👨‍💼", sentence: "校長在早會上勉勵我們要努力學習。" },
+          { char: "同學", jyut: "tung4 hok6", en: "Classmate", emoji: "👦👧", sentence: "我和同學在小息時一起分享零食。" },
+          { char: "學生", jyut: "hok6 saang1", en: "Student", emoji: "🎒", sentence: "學生要遵守校規，做個好孩子。" },
+          { char: "班長", jyut: "baan1 zoeng2", en: "Class Monitor", emoji: "👦", sentence: "班長協助老師維持課室的秩序。" },
+          { char: "操場", jyut: "cou1 coeng4", en: "Playground", emoji: "🏃", sentence: "同學們在寬闊的操場上跑來跑去。" },
+          { char: "課室", jyut: "fo3 sat1", en: "Classroom", emoji: "🏫", sentence: "我們在明亮寬敞的課室裡上課。" },
+          { char: "黑板", jyut: "hak1 baan2", en: "Blackboard", emoji: "🖍️", sentence: "老師在黑板上寫了很多重要的生字。" },
+          { char: "書包", jyut: "syu1 baau1", en: "Schoolbag", emoji: "🎒", sentence: "我的書包裡放了課本、文具和水壺。" },
+          { char: "圖書", jyut: "tou4 syu1", en: "Books", emoji: "📚", sentence: "圖書館裡有很多有趣的圖書供我們借閱。" },
+          { char: "文具", jyut: "man4 geoi6", en: "Stationery", emoji: "✏️", sentence: "我有一盒精美的文具，裡面有鉛筆和尺子。" },
+          { char: "圖畫", jyut: "tou4 waa2", en: "Picture/Drawing", emoji: "🖼️", sentence: "這幅圖畫色彩鮮豔，畫得真美麗。" },
+          { char: "校規", jyut: "haau6 kwai1", en: "School Rules", emoji: "📋", sentence: "我們要遵守校規，不可在走廊奔跑。" },
+          { char: "課外", jyut: "fo3 ngoi6", en: "Extracurricular", emoji: "⚽", sentence: "我參加了有趣的課外活動，學習踢足球。" },
+          { char: "早操", jyut: "zou2 cou1", en: "Morning Exercise", emoji: "🤸", sentence: "做早操可以伸展筋骨，有益身心。" },
+          { char: "開學", jyut: "hoi1 hok6", en: "School Starts", emoji: "📅", sentence: "開學了，我很高興能見到舊同學。" },
+          { char: "學習", jyut: "hok6 zaap6", en: "Study/Learn", emoji: "✍️", sentence: "我們要認真學習，將來做個有用的人。" },
+          { char: "寫字", jyut: "se2 zi6", en: "Writing", emoji: "📝", sentence: "弟弟正在專心地練習寫字，字體很工整。" },
+          { char: "讀書", jyut: "duk6 syu1", en: "Reading/Studying", emoji: "📖", sentence: "多讀書可以增加知識，擴闊視野。" },
+          { char: "上課", jyut: "soeng5 fo3", en: "Attend Class", emoji: "🔔", sentence: "上課鐘聲響了，同學們立刻回到座位。" },
+          { char: "下課", jyut: "haa6 fo3", en: "End of Class", emoji: "🎉", sentence: "下課後，我和朋友一起去操場玩耍。" },
+          { char: "放學", jyut: "fong3 hok6", en: "Dismissal", emoji: "👋", sentence: "放學時，要排隊離開學校，注意安全。" },
+          { char: "放假", jyut: "fong3 gaa3", en: "Holiday", emoji: "🏖️", sentence: "放假的時候，爸爸帶我去海灘游泳。" },
+          { char: "遵守", jyut: "zeon1 sau2", en: "Obey", emoji: "🙆", sentence: "過馬路時要遵守交通規則，紅燈停綠燈走。" },
+          { char: "小息", jyut: "siu2 sik1", en: "Recess", emoji: "🧃", sentence: "小息時，大家在操場上開心地聊天。" },
+          { char: "現在", jyut: "jin6 zoi6", en: "Now", emoji: "⏰", sentence: "現在是讀書時間，請大家保持安靜。" },
+          { char: "今天", jyut: "gam1 tin1", en: "Today", emoji: "📆", sentence: "今天是我的生日，媽媽買了蛋糕給我。" },
+          { char: "明天", jyut: "ming4 tin1", en: "Tomorrow", emoji: "🔜", sentence: "明天學校會舉行運動會，我很期待。" }
+        ]
+      },
+      {
+        id: "p1-park",
+        name: "公園篇",
+        en: "Park",
+        desc: "哥哥 妹妹 姐姐 弟弟...",
+        icon: <Trees className="w-8 h-8" />,
+        color: "bg-green-100 border-green-400",
+        words: [
+          { char: "哥哥", jyut: "go1 go1", en: "Elder Brother", emoji: "👦", sentence: "哥哥教我做功課，非常有耐心。" },
+          { char: "妹妹", jyut: "mui4 mui2", en: "Younger Sister", emoji: "👧", sentence: "妹妹的笑容很甜美，大家都很喜歡她。" },
+          { char: "姐姐", jyut: "ze2 ze2", en: "Elder Sister", emoji: "👧", sentence: "姐姐幫媽媽梳頭，真乖巧。" },
+          { char: "弟弟", jyut: "dai4 dai2", en: "Younger Brother", emoji: "👶", sentence: "弟弟學會了走路，大家都拍手叫好。" },
+          { char: "別人", jyut: "bit6 jan4", en: "Others", emoji: "👥", sentence: "我們要尊重別人，也要有禮貌。" },
+          { char: "朋友", jyut: "pang4 jau5", en: "Friend", emoji: "🤝", sentence: "我和朋友在公園裡一起玩捉迷藏。" },
+          { char: "人們", jyut: "jan4 mun4", en: "People", emoji: "🧑‍🤝‍🧑", sentence: "公園裡，人們有的在散步，有的在做運動。" },
+          { char: "公園", jyut: "gung1 jyun2", en: "Park", emoji: "🏞️", sentence: "星期天，一家人去公園野餐。" },
+          { char: "草地", jyut: "cou2 dei6", en: "Grassland/Lawn", emoji: "🌿", sentence: "我們坐在綠油油的草地上休息。" },
+          { char: "户外", jyut: "wu6 ngoi6", en: "Outdoors", emoji: "🏕️", sentence: "多做户外活動，身體會更健康。" },
+          { char: "天空", jyut: "tin1 hung1", en: "Sky", emoji: "☁️", sentence: "藍藍的天空上飄著幾朵白雲。" },
+          { char: "植物", jyut: "zik6 mat6", en: "Plants", emoji: "🪴", sentence: "我們要在花園裡種植不同的植物。" },
+          { char: "動物", jyut: "dung6 mat6", en: "Animals", emoji: "🐾", sentence: "我們要愛護小動物，不可以傷害牠們。" },
+          { char: "樹木", jyut: "syu6 muk6", en: "Trees", emoji: "🌳", sentence: "樹木可以遮擋陽光，讓我們感到涼快。" },
+          { char: "花兒", jyut: "faa1 ji4", en: "Flowers", emoji: "🌺", sentence: "春來了，花園裡開滿了美麗的花兒。" },
+          { char: "葉子", jyut: "jip6 zi2", en: "Leaves", emoji: "🍃", sentence: "秋天到了，枯黃的葉子從樹上掉下來。" },
+          { char: "小鳥", jyut: "siu2 niu5", en: "Bird", emoji: "🐦", sentence: "小鳥在樹枝上快樂地唱歌。" },
+          { char: "魚兒", jyut: "jyu4 ji4", en: "Fish", emoji: "🐟", sentence: "魚兒在池塘裡自由自在地游來游去。" },
+          { char: "跑步", jyut: "paau2 bou6", en: "Running", emoji: "🏃", sentence: "哥哥每天早上都會到公園跑步。" },
+          { char: "拍球", jyut: "paak3 kau4", en: "Play Ball", emoji: "🏀", sentence: "弟弟喜歡在操場上拍球。" },
+          { char: "玩耍", jyut: "waan2 saa2", en: "Playing", emoji: "🤹", sentence: "小朋友在遊樂場裡開心地玩耍。" },
+          { char: "休息", jyut: "jau1 sik1", en: "Rest", emoji: "🪑", sentence: "走累了，我們坐在長椅上休息一會兒。" },
+          { char: "走路", jyut: "zau2 lou6", en: "Walking", emoji: "🚶", sentence: "爺爺每天都會堅持走路做運動。" },
+          { char: "假日", jyut: "gaa3 jat6", en: "Holiday", emoji: "🎉", sentence: "假日裡，爸爸帶我們去主題公園玩。" },
+          { char: "春天", jyut: "ceon1 tin1", en: "Spring", emoji: "🌱", sentence: "春天來了，萬物都充滿了生機。" },
+          { char: "夏天", jyut: "haa6 tin1", en: "Summer", emoji: "☀️", sentence: "夏天天氣炎熱，我最喜歡吃冰淇淋。" },
+          { char: "秋天", jyut: "cau1 tin1", en: "Autumn", emoji: "🍂", sentence: "秋天天氣涼爽，是郊遊的好季節。" },
+          { char: "冬天", jyut: "dung1 tin1", en: "Winter", emoji: "❄️", sentence: "冬天時，我們要穿上厚厚的衣服保暖。" }
+        ]
       }
+    ]
+  },
+  2: {
+    title: "二年級 (P2)",
+    color: "bg-blue-500",
+    themes: [
+      {
+        id: "p2-family",
+        name: "家庭篇",
+        en: "Family (Advanced)",
+        desc: "爺爺 表哥 堂妹 親友...",
+        icon: <Home className="w-8 h-8" />,
+        color: "bg-indigo-100 border-indigo-400",
+        words: [
+          { char: "爺爺", jyut: "je4 je2", en: "Grandfather", emoji: "👴", sentence: "爺爺喜歡坐在搖椅上講故事給我們聽。" },
+          { char: "表哥", jyut: "biu2 go1", en: "Male Cousin (Older)", emoji: "👦", sentence: "表哥教我踏單車，我很感謝他。" },
+          { char: "堂妹", jyut: "tong4 mui2", en: "Female Cousin (Younger)", emoji: "👧", sentence: "堂妹很可愛，喜歡抱著洋娃娃。" },
+          { char: "親友", jyut: "can1 jau5", en: "Relatives and Friends", emoji: "🫂", sentence: "農曆新年時，我們會去探望親友。" },
+          { char: "客人", jyut: "haak3 jan4", en: "Guest", emoji: "🍵", sentence: "家裡來了客人，我幫忙倒茶招呼。" },
+          { char: "窗户", jyut: "coeng1 wu6", en: "Window", emoji: "🪟", sentence: "打開窗户，讓新鮮的空氣進來。" },
+          { char: "被子", jyut: "pei5 zi2", en: "Quilt", emoji: "🛌", sentence: "天氣冷了，晚上睡覺要蓋好被子。" },
+          { char: "桌子", jyut: "zoek3 zi2", en: "Table", emoji: "🪑", sentence: "我們一家人圍著桌子吃晚飯。" },
+          { char: "椅子", jyut: "ji2 zi2", en: "Chair", emoji: "💺", sentence: "這把椅子坐起來很舒服。" },
+          { char: "冰箱", jyut: "bing1 soeng1", en: "Refrigerator", emoji: "🧊", sentence: "媽媽把買回來的水果放進冰箱裡。" },
+          { char: "玩具", jyut: "wun6 geoi6", en: "Toys", emoji: "🧸", sentence: "玩完玩具後，要把它們收拾好。" },
+          { char: "娃娃", jyut: "waa1 waa1", en: "Doll", emoji: "🎎", sentence: "妹妹抱著心愛的娃娃睡覺。" },
+          { char: "報紙", jyut: "bou3 zi2", en: "Newspaper", emoji: "📰", sentence: "爸爸每天早上都有看報紙的習慣。" },
+          { char: "雨傘", jyut: "jyu5 saan3", en: "Umbrella", emoji: "☂️", sentence: "下雨了，記得帶雨傘出門。" },
+          { char: "衣服", jyut: "ji1 fuk6", en: "Clothes", emoji: "👕", sentence: "媽媽幫我買了一件漂亮的新衣服。" },
+          { char: "鞋子", jyut: "haai4 zi2", en: "Shoes", emoji: "👟", sentence: "這雙鞋子很舒適，適合跑步。" },
+          { char: "電視", jyut: "din6 si6", en: "Television", emoji: "📺", sentence: "做完功課後，我們可以看一會兒電視。" },
+          { char: "電話", jyut: "din6 waa2", en: "Telephone", emoji: "☎️", sentence: "我打電話給奶奶，祝她身體健康。" },
+          { char: "蛋糕", jyut: "daan6 gou1", en: "Cake", emoji: "🎂", sentence: "生日會上，我們一起吃美味的蛋糕。" },
+          { char: "筷子", jyut: "faai3 zi2", en: "Chopsticks", emoji: "🥢", sentence: "我學會了用筷子夾菜。" },
+          { char: "洗臉", jyut: "sai2 lim5", en: "Wash Face", emoji: "🧖", sentence: "起床後要刷牙洗臉，保持清潔。" },
+          { char: "家務", jyut: "gaa1 mou6", en: "Housework", emoji: "🧹", sentence: "我們會分擔家務，減輕媽媽的負擔。" },
+          { char: "刷牙", jyut: "caat3 ngaa4", en: "Brush Teeth", emoji: "🪥", sentence: "每天早晚刷牙，牙齒才會健康。" },
+          { char: "梳頭", jyut: "so1 tau4", en: "Comb Hair", emoji: "💇", sentence: "出門前，要把頭髮梳理整齊。" },
+          { char: "幫忙", jyut: "bong1 mong4", en: "Help", emoji: "🤝", sentence: "我喜歡幫忙做家務，例如掃地和抹窗。" },
+          { char: "收拾", jyut: "sau1 sap6", en: "Tidy up", emoji: "🧺", sentence: "請把桌面上的書本收拾整齊。" },
+          { char: "茶點", jyut: "caa4 dim2", en: "Tea/Snacks", emoji: "🍪", sentence: "下午茶時間，我們吃了一些茶點。" },
+          { char: "午餐", jyut: "ng5 caan1", en: "Lunch", emoji: "🍱", sentence: "今天的午餐有三文治和果汁。" },
+          { char: "黃昏", jyut: "wong4 fan1", en: "Dusk", emoji: "🌆", sentence: "黃昏時，太陽慢慢地下山了。" },
+          { char: "回家", jyut: "wui4 gaa1", en: "Go Home", emoji: "🏡", sentence: "放學後，我立刻回家做功課。" }
+        ]
+      },
+      {
+        id: "p2-school",
+        name: "學校篇",
+        en: "School (Advanced)",
+        desc: "風紀 朋友 圖書館 音樂室...",
+        icon: <School className="w-8 h-8" />,
+        color: "bg-sky-100 border-sky-400",
+        words: [
+          { char: "風紀", jyut: "fung1 gei2", en: "Prefect", emoji: "💂", sentence: "風紀會在走廊維持秩序。" },
+          { char: "朋友", jyut: "pang4 jau5", en: "Friend", emoji: "👫", sentence: "我們要對朋友友善和誠實。" },
+          { char: "圖書館", jyut: "tou4 syu1 gun2", en: "Library", emoji: "📚", sentence: "圖書館內要保持安靜，不可喧嘩。" },
+          { char: "音樂室", jyut: "jam1 ngok6 sat1", en: "Music Room", emoji: "🎹", sentence: "我們在音樂室裡唱歌和彈琴。" },
+          { char: "洗手間", jyut: "sai2 sau2 gaan1", en: "Restroom", emoji: "🚻", sentence: "如廁後，記得要沖水和洗手。" },
+          { char: "走廊", jyut: "zau2 long2", en: "Corridor", emoji: "🚶", sentence: "請不要在走廊上奔跑。" },
+          { char: "早操", jyut: "zou2 cou1", en: "Morning Exercise", emoji: "🤸", sentence: "全校同學一起做早操，精神奕奕。" },
+          { char: "足球", jyut: "zuk1 kau4", en: "Football", emoji: "⚽", sentence: "小息時，男生們喜歡踢足球。" },
+          { char: "乒乓球", jyut: "bing1 bam1 kau4", en: "Table Tennis", emoji: "🏓", sentence: "哥哥代表學校參加乒乓球比賽。" },
+          { char: "校車", jyut: "haau6 ce1", en: "School Bus", emoji: "🚌", sentence: "我每天乘搭校車上學和放學。" },
+          { char: "電腦", jyut: "din6 nou5", en: "Computer", emoji: "💻", sentence: "我們利用電腦搜尋資料。" },
+          { char: "文具", jyut: "man4 geoi6", en: "Stationery", emoji: "✏️", sentence: "要愛惜文具，不要隨意浪費。" },
+          { char: "尺子", jyut: "cek3 zi2", en: "Ruler", emoji: "📏", sentence: "我用尺子畫了一條直線。" },
+          { char: "鉛筆", jyut: "jyun4 bat1", en: "Pencil", emoji: "✏️", sentence: "這枝鉛筆是用木頭做的。" },
+          { char: "橡皮", jyut: "zoeng6 pei4", en: "Eraser", emoji: "🧼", sentence: "寫錯字時，可以用橡皮擦掉。" },
+          { char: "功課", jyut: "gung1 fo3", en: "Homework", emoji: "📚", sentence: "我們要依時遞交功課。" },
+          { char: "遵守", jyut: "zeon1 sau2", en: "Obey", emoji: "🫡", sentence: "學生要遵守學校的規則。" },
+          { char: "比賽", jyut: "bei2 coi3", en: "Competition", emoji: "🏆", sentence: "他在朗誦比賽中獲得冠軍。" },
+          { char: "賽跑", jyut: "coi3 paau2", en: "Running Race", emoji: "🏃", sentence: "運動場上正在進行激烈的賽跑。" },
+          { char: "作文", jyut: "zok3 man4", en: "Composition", emoji: "📝", sentence: "老師稱讚我的作文寫得很好。" },
+          { char: "唱歌", jyut: "coeng3 go1", en: "Singing", emoji: "🎤", sentence: "妹妹喜歡一邊洗澡一邊唱歌。" },
+          { char: "跳舞", jyut: "tiu3 mou5", en: "Dancing", emoji: "💃", sentence: "她在台上跳舞，姿態優美。" },
+          { char: "運動", jyut: "wan6 dung6", en: "Exercise", emoji: "🏸", sentence: "多做運動，身體才會強壯。" },
+          { char: "畫畫", jyut: "waak6 waa2", en: "Drawing", emoji: "🎨", sentence: "我喜歡用木顏色筆畫畫。" },
+          { char: "學習", jyut: "hok6 zaap6", en: "Learning", emoji: "🧠", sentence: "我們要保持終身學習的態度。" },
+          { char: "閱讀", jyut: "jyut6 duk6", en: "Reading", emoji: "👓", sentence: "閱讀可以增長知識和見聞。" },
+          { char: "體育課", jyut: "tai2 juk6 fo3", en: "PE Class", emoji: "⛹️", sentence: "體育課是我們最喜歡的課堂。" },
+          { char: "上學", jyut: "soeng5 hok6", en: "Go to school", emoji: "🎒", sentence: "每天早上，我看見很多學生上學。" },
+          { char: "昨天", jyut: "zok3 tin1", en: "Yesterday", emoji: "⏪", sentence: "昨天是星期日，我們去了公園。" },
+          { char: "暑假", jyut: "syu2 gaa3", en: "Summer Holiday", emoji: "🏖️", sentence: "暑假期間，我們會去旅行。" }
+        ]
+      },
+      {
+        id: "p2-activity",
+        name: "活動篇",
+        en: "Activities",
+        desc: "姊姊 堂哥 表弟 海洋公園...",
+        icon: <Ticket className="w-8 h-8" />,
+        color: "bg-purple-100 border-purple-400",
+        words: [
+          { char: "姊姊", jyut: "ze2 ze2", en: "Elder Sister", emoji: "👧", sentence: "姊姊很照顧我，常常陪我玩。" },
+          { char: "堂哥", jyut: "tong4 go1", en: "Male Cousin", emoji: "👦", sentence: "堂哥和我一起在球場打籃球。" },
+          { char: "表弟", jyut: "biu2 dai2", en: "Male Cousin", emoji: "👶", sentence: "表弟剛學會說話，非常可愛。" },
+          { char: "海洋公園", jyut: "hoi2 joeng4 gung1 jyun2", en: "Ocean Park", emoji: "🐬", sentence: "我們在海洋公園看到了海豚表演。" },
+          { char: "遊樂場", jyut: "jau4 lok6 coeng4", en: "Playground", emoji: "🎠", sentence: "遊樂場裡充滿了小朋友的歡笑聲。" },
+          { char: "籃球場", jyut: "laam4 kau4 coeng4", en: "Basketball Court", emoji: "🏀", sentence: "哥哥每天放學都會去籃球場打球。" },
+          { char: "迪士尼", jyut: "dik6 si6 nei4", en: "Disneyland", emoji: "🏰", sentence: "迪士尼樂園是小朋友的夢想樂園。" },
+          { char: "百貨公司", jyut: "baak3 fo3 gung1 si1", en: "Department Store", emoji: "🏢", sentence: "媽媽在百貨公司買了很多日用品。" },
+          { char: "海灘", jyut: "hoi2 taan1", en: "Beach", emoji: "🏖️", sentence: "夏天我們喜歡到海灘游泳和堆沙。" },
+          { char: "摩天輪", jyut: "mo1 tin1 leon4", en: "Ferris Wheel", emoji: "🎡", sentence: "坐在摩天輪上，可以俯瞰美麗的景色。" },
+          { char: "滑梯", jyut: "waat6 tai1", en: "Slide", emoji: "🛝", sentence: "弟弟最喜歡玩公園裡的滑梯。" },
+          { char: "散步", jyut: "saan3 bou6", en: "Stroll", emoji: "🚶", sentence: "晚飯後，我們一家人去公園散步。" },
+          { char: "郊遊", jyut: "gaau1 jau4", en: "Picnic", emoji: "🥪", sentence: "秋天是郊遊的好季節，天氣很涼爽。" },
+          { char: "看電影", jyut: "hon3 din6 jing2", en: "Watch Movie", emoji: "🎬", sentence: "週末我們去戲院看了一套精彩的電影。" },
+          { char: "盪秋千", jyut: "dong6 cau1 cin1", en: "Swing", emoji: "🪜", sentence: "妹妹在公園裡開心地盪秋千。" },
+          { char: "游泳", jyut: "jau4 wing6", en: "Swimming", emoji: "🏊", sentence: "我學會了游泳，可以在水裡像魚一樣游。" },
+          { char: "跳繩", jyut: "tiu3 sing2", en: "Skipping rope", emoji: "🪢", sentence: "跳繩是一項很好的帶氧運動。" },
+          { char: "卡通片", jyut: "kaa1 tung1 pin2", en: "Cartoon", emoji: "📺", sentence: "這套卡通片非常有趣，惹人發笑。" },
+          { char: "繪畫", jyut: "kui2 waa2", en: "Painting", emoji: "🎨", sentence: "他在繪畫比賽中獲得了優異獎。" },
+          { char: "上網", jyut: "soeng5 mong5", en: "Surfing the Internet", emoji: "🌐", sentence: "我們可以上網搜尋有用的資料。" },
+          { char: "放風箏", jyut: "fong3 fung1 zang1", en: "Fly a Kite", emoji: "🪁", sentence: "風很大，我們去郊野公園放風箏。" },
+          { char: "遊戲機", jyut: "jau4 hei3 gei1", en: "Game Console", emoji: "🎮", sentence: "玩遊戲機要適可而止，不要沉迷。" },
+          { char: "踏單車", jyut: "daap6 daan1 ce1", en: "Cycling", emoji: "🚴", sentence: "週末我們去海濱長廊踏單車。" },
+          { char: "彈鋼琴", jyut: "taan4 gong3 kam4", en: "Play Piano", emoji: "🎹", sentence: "姊姊正在練習彈鋼琴，琴聲很悅耳。" },
+          { char: "上酒樓", jyut: "soeng5 zau2 lau4", en: "Go to Restaurant", emoji: "🥢", sentence: "星期天早上，我們會上酒樓喝茶。" },
+          { char: "星期天", jyut: "sing1 kei4 tin1", en: "Sunday", emoji: "📅", sentence: "星期天是家庭日，我們都會聚在一起。" },
+          { char: "假期", jyut: "gaa3 kei4", en: "Holiday", emoji: "🎉", sentence: "假期裡，我可以好好休息和玩耍。" },
+          { char: "聖誕節", jyut: "sing3 daan3 zit3", en: "Christmas", emoji: "🎄", sentence: "聖誕節時，我們會交換禮物和吃大餐。" },
+          { char: "復活節", jyut: "fuk6 wut6 zit3", en: "Easter", emoji: "🥚", sentence: "復活節象徵重生和希望。" },
+          { char: "農曆新年", jyut: "nung4 lik6 san1 nin4", en: "Lunar New Year", emoji: "🧧", sentence: "農曆新年，我們會穿新衣和逗利是。" }
+        ]
+      },
+      {
+        id: "p2-food",
+        name: "飲食篇",
+        en: "Food & Dining",
+        desc: "廚師 顧客 侍應 蘋果...",
+        icon: <Utensils className="w-8 h-8" />,
+        color: "bg-yellow-100 border-yellow-400",
+        words: [
+          { char: "廚師", jyut: "cyu4 si1", en: "Chef", emoji: "👨‍🍳", sentence: "廚師用心製作每一道美味的菜餚。" },
+          { char: "顧客", jyut: "gu3 haak3", en: "Customer", emoji: "👥", sentence: "商店裡有很多顧客在選購商品。" },
+          { char: "侍應", jyut: "si6 jing3", en: "Waiter", emoji: "💁", sentence: "侍應有禮貌地為我們下單。" },
+          { char: "蘋果", jyut: "ping4 gwo2", en: "Apple", emoji: "🍎", sentence: "多吃蘋果對身體有益。" },
+          { char: "糖果", jyut: "tong4 gwo2", en: "Candy", emoji: "🍬", sentence: "吃太多糖果會容易蛀牙。" },
+          { char: "餅乾", jyut: "beng2 gon1", en: "Biscuit", emoji: "🍪", sentence: "這些餅乾鬆脆可口，很好吃。" },
+          { char: "蛋糕", jyut: "daan6 gou1", en: "Cake", emoji: "🍰", sentence: "媽媽親手做了一個草莓蛋糕。" },
+          { char: "牛油", jyut: "ngau4 jau4", en: "Butter", emoji: "🧈", sentence: "塗上牛油的麵包特別香。" },
+          { char: "汽水", jyut: "hei3 seoi2", en: "Soda", emoji: "🥤", sentence: "少喝汽水，多喝清水比較健康。" },
+          { char: "身體", jyut: "san1 tai2", en: "Body", emoji: "💪", sentence: "我們要多做運動，保持身體健康。" },
+          { char: "米粉", jyut: "mai5 fan2", en: "Rice Noodles", emoji: "🍜", sentence: "早餐我吃了一碗美味的米粉。" },
+          { char: "火鍋", jyut: "fo2 wo1", en: "Hot Pot", emoji: "🍲", sentence: "冬天吃火鍋，身體暖洋洋的。" },
+          { char: "雪糕車", jyut: "syut3 gou1 ce1", en: "Ice Cream Truck", emoji: "🍦", sentence: "每當聽到雪糕車的音樂，我就想吃雪糕。" },
+          { char: "茶餐廳", jyut: "caa4 caan1 teng1", en: "Cha Chaan Teng", emoji: "☕", sentence: "茶餐廳有很多地道的香港美食。" },
+          { char: "快餐店", jyut: "faai3 caan1 dim3", en: "Fast Food Shop", emoji: "🍔", sentence: "快餐店的食物雖然方便，但不宜多吃。" },
+          { char: "麥當勞", jyut: "mak6 dong1 lou4", en: "McDonald's", emoji: "🍟", sentence: "小朋友最喜歡去麥當勞吃漢堡包。" },
+          { char: "超級市場", jyut: "ciu1 kap1 si5 coeng4", en: "Supermarket", emoji: "🛒", sentence: "媽媽在超級市場買了很多新鮮蔬菜。" },
+          { char: "食物", jyut: "sik6 mat6", en: "Food", emoji: "🥘", sentence: "我們要珍惜食物，不要浪費。" },
+          { char: "碗碟", jyut: "wun2 dip6", en: "Bowls and Plates", emoji: "🍽️", sentence: "吃完飯後，要幫忙收拾碗碟。" },
+          { char: "水杯", jyut: "seoi2 bui1", en: "Cup", emoji: "🥛", sentence: "請給我一個水杯喝水。" },
+          { char: "菜單", jyut: "coi3 daan1", en: "Menu", emoji: "📜", sentence: "我們看著菜單點菜。" },
+          { char: "新鮮", jyut: "san1 sin1", en: "Fresh", emoji: "🥬", sentence: "這裡的海鮮非常新鮮。" },
+          { char: "有益", jyut: "jau5 jik1", en: "Beneficial", emoji: "👍", sentence: "多吃水果對身體有益。" },
+          { char: "自己", jyut: "zi6 gei2", en: "Self", emoji: "🙋", sentence: "我們要學會自己照顧自己。" },
+          { char: "肚餓", jyut: "tou5 ngo6", en: "Hungry", emoji: "😋", sentence: "我的肚子餓了，想吃東西。" },
+          { char: "美味", jyut: "mei5 mei6", en: "Delicious", emoji: "🤤", sentence: "媽媽煮的餸菜非常美味。" },
+          { char: "飽飽的", jyut: "baau2 baau2 dik1", en: "Full", emoji: "😌", sentence: "吃完大餐，肚子飽飽的。" },
+          { char: "早餐", jyut: "zou2 caan1", en: "Breakfast", emoji: "🍳", sentence: "早餐是一天中最重要的一餐。" },
+          { char: "午飯", jyut: "ng5 faan6", en: "Lunch", emoji: "🍱", sentence: "我們在學校吃午飯。" },
+          { char: "晚飯", jyut: "maan5 faan6", en: "Dinner", emoji: "🍲", sentence: "全家人一起吃晚飯，感覺很溫馨。" }
+        ]
+      },
+      {
+        id: "p2-emotion-pos",
+        name: "心理 (正面)",
+        en: "Positive Emotions",
+        desc: "開心 快樂 高興 愉快...",
+        icon: <Smile className="w-8 h-8" />,
+        color: "bg-rose-100 border-rose-400",
+        words: [
+          { char: "開心", jyut: "hoi1 sam1", en: "Happy", emoji: "😊", sentence: "收到禮物，我感到很開心。" },
+          { char: "快樂", jyut: "faai3 lok6", en: "Joyful", emoji: "😄", sentence: "祝你生日快樂！" },
+          { char: "高興", jyut: "gou1 hing3", en: "Glad", emoji: "😁", sentence: "很高興認識你。" },
+          { char: "愉快", jyut: "jyu4 faai3", en: "Pleasant", emoji: "🌞", sentence: "我們度過了一個愉快的週末。" },
+          { char: "歡樂", jyut: "fun1 lok6", en: "Cheerful", emoji: "🥳", sentence: "遊樂場裡充滿了歡樂的笑聲。" },
+          { char: "喜歡", jyut: "hei2 fun1", en: "Like", emoji: "❤️", sentence: "我喜歡看圖畫書。" },
+          { char: "滿足", jyut: "mun5 zuk1", en: "Satisfied", emoji: "😌", sentence: "吃飽後，我感到很滿足。" },
+          { char: "輕鬆", jyut: "hing1 sung1", en: "Relaxed", emoji: "🍃", sentence: "聽音樂讓我感到很輕鬆。" },
+          { char: "感動", jyut: "gam2 dung6", en: "Touched", emoji: "🥹", sentence: "這部電影的情節很感人，令我深受感動。" },
+          { char: "好奇", jyut: "hou3 kei4", en: "Curious", emoji: "🧐", sentence: "我對這個世界充滿了好奇。" },
+          { char: "幸福", jyut: "hang6 fuk1", en: "Blessed", emoji: "🥰", sentence: "一家人在一起，我覺得很幸福。" },
+          { char: "欣慰", jyut: "jan1 wai3", en: "Gratified", emoji: "☺️", sentence: "看到我有進步，媽媽感到很欣慰。" },
+          { char: "自信", jyut: "zi6 seon3", en: "Confident", emoji: "🦁", sentence: "他充滿自信地在台上演講。" },
+          { char: "滿意", jyut: "mun5 ji3", en: "Satisfied", emoji: "👌", sentence: "老師對我的表現感到滿意。" },
+          { char: "笑哈哈", jyut: "siu3 haa1 haa1", en: "Laughing", emoji: "😆", sentence: "聽完笑話，大家都笑哈哈。" }
+        ]
+      },
+      {
+        id: "p2-emotion-neg",
+        name: "心理 (負面)",
+        en: "Negative Emotions",
+        desc: "傷心 害怕 吃驚 煩惱...",
+        icon: <Frown className="w-8 h-8" />,
+        color: "bg-gray-100 border-gray-400",
+        words: [
+          { char: "傷心", jyut: "soeng1 sam1", en: "Sad", emoji: "😢", sentence: "心愛的玩具壞了，我很傷心。" },
+          { char: "害怕", jyut: "hoi6 paa3", en: "Scared", emoji: "😱", sentence: "打雷的聲音很大，我很害怕。" },
+          { char: "吃驚", jyut: "hek3 ging1", en: "Surprised/Shocked", emoji: "😲", sentence: "聽到這個消息，我感到很吃驚。" },
+          { char: "煩惱", jyut: "faan4 nou5", en: "Troubled", emoji: "😖", sentence: "遇到困難時，不要獨自煩惱，可以找人幫忙。" },
+          { char: "哭了", jyut: "huk1 liu5", en: "Cried", emoji: "😭", sentence: "弟弟跌倒受傷，痛得哭了起來。" },
+          { char: "失望", jyut: "sat1 mong6", en: "Disappointed", emoji: "😞", sentence: "比賽輸了，隊員們都很失望。" },
+          { char: "後悔", jyut: "hau6 fui3", en: "Regret", emoji: "😔", sentence: "我後悔沒有聽媽媽的話。" },
+          { char: "討厭", jyut: "tou2 jim3", en: "Hate/Dislike", emoji: "😒", sentence: "我不喜歡吃苦瓜，覺得很討厭。" },
+          { char: "悲傷", jyut: "bei1 soeng1", en: "Sorrowful", emoji: "🥀", sentence: "聽到這個不幸的消息，大家都感到很悲傷。" },
+          { char: "憂慮", jyut: "jau1 leoi6", en: "Anxious", emoji: "😟", sentence: "媽媽為我的學業感到憂慮。" },
+          { char: "擔心", jyut: "daam1 sam1", en: "Worried", emoji: "😰", sentence: "天黑了還未回家，家人會很擔心。" },
+          { char: "生氣", jyut: "saang1 hei3", en: "Angry", emoji: "😠", sentence: "弟弟搶我的玩具，我很生氣。" },
+          { char: "緊張", jyut: "gan2 zoeng1", en: "Nervous", emoji: "😬", sentence: "考試前，我感到有點緊張。" },
+          { char: "厭倦", jyut: "jim3 gyun6", en: "Tired of", emoji: "🥱", sentence: "每天做同樣的事情，他感到有點厭倦。" },
+          { char: "悶", jyut: "mun6", en: "Bored", emoji: "😑", sentence: "下雨天不能出去玩，我覺得很悶。" }
+        ]
+      }
+    ]
+  },
+  3: {
+    title: "三年級 (P3)",
+    color: "bg-purple-500",
+    themes: [
+      {
+        id: "p3-community",
+        name: "社區篇",
+        en: "Community",
+        desc: "社區會堂 郵政局 銀行...",
+        icon: <Building className="w-8 h-8" />,
+        color: "bg-teal-100 border-teal-400",
+        words: [
+          { char: "社區會堂", jyut: "se5 keoi1 wui6 tong4", en: "Community Hall", emoji: "🏢", sentence: "社區會堂經常舉辦各種活動。" },
+          { char: "郵政局", jyut: "jau4 zing3 guk2", en: "Post Office", emoji: "🏣", sentence: "我去郵政局寄信給遠方的朋友。" },
+          { char: "銀行", jyut: "ngan4 hong4", en: "Bank", emoji: "🏦", sentence: "媽媽去銀行存錢。" },
+          { char: "診所", jyut: "can2 so2", en: "Clinic", emoji: "🩺", sentence: "生病了要去看醫生，診所就在樓下。" },
+          { char: "醫院", jyut: "ji1 jyun2", en: "Hospital", emoji: "🏥", sentence: "受傷嚴重時，要立即送往醫院。" },
+          { char: "消防局", jyut: "siu1 fong4 guk2", en: "Fire Station", emoji: "🚒", sentence: "消防員在消防局隨時候命。" },
+          { char: "商場", jyut: "soeng1 coeng4", en: "Shopping Mall", emoji: "🛍️", sentence: "週末，商場裡人山人海。" },
+          { char: "補習社", jyut: "bou2 zaap6 se5", en: "Tutorial Center", emoji: "📝", sentence: "放學後，他去補習社溫習功課。" },
+          { char: "博物館", jyut: "bok3 mat6 gun2", en: "Museum", emoji: "🏛️", sentence: "博物館裡展出了很多珍貴的文物。" },
+          { char: "藝術中心", jyut: "ngai6 seot6 zung1 sam1", en: "Arts Centre", emoji: "🎭", sentence: "我們去藝術中心欣賞話劇表演。" },
+          { char: "鄰居", jyut: "leon4 geoi1", en: "Neighbor", emoji: "🏘️", sentence: "我們要與鄰居和睦相處。" },
+          { char: "管理員", jyut: "gun2 lei5 jyun4", en: "Security Guard", emoji: "👮", sentence: "大廈管理員負責維持治安。" },
+          { char: "警察", jyut: "ging2 caat3", en: "Police", emoji: "👮‍♂️", sentence: "警察叔叔會捉拿壞人，保護市民。" },
+          { char: "醫生", jyut: "ji1 sang1", en: "Doctor", emoji: "👨‍⚕️", sentence: "醫生細心地為病人診治。" },
+          { char: "護士", jyut: "wu6 si6", en: "Nurse", emoji: "👩‍⚕️", sentence: "護士照顧病人，非常有愛心。" },
+          { char: "港鐵", jyut: "gong2 tit3", en: "MTR", emoji: "🚇", sentence: "乘搭港鐵去不同地方都很方便。" },
+          { char: "計程車", jyut: "gai3 cing4 ce1", en: "Taxi", emoji: "🚕", sentence: "我們乘搭計程車趕去機場。" },
+          { char: "渡輪", jyut: "dou6 leon4", en: "Ferry", emoji: "⛴️", sentence: "我們坐渡輪去長洲遊玩。" },
+          { char: "電車", jyut: "din6 ce1", en: "Tram", emoji: "🚋", sentence: "電車在港島區緩緩行駛。" },
+          { char: "輕鐵", jyut: "hing1 tit3", en: "Light Rail", emoji: "🚃", sentence: "輕鐵是屯門和元朗的重要交通工具。" },
+          { char: "飛機", jyut: "fei1 gei1", en: "Airplane", emoji: "✈️", sentence: "飛機載我們飛上天空去旅行。" },
+          { char: "私家車", jyut: "si1 gaa1 ce1", en: "Private Car", emoji: "🚗", sentence: "爸爸駕駛私家車帶我們去郊遊。" },
+          { char: "紅綠燈", jyut: "hung4 luk6 dang1", en: "Traffic Light", emoji: "🚦", sentence: "過馬路要看紅綠燈。" },
+          { char: "隧道", jyut: "seoi6 dou6", en: "Tunnel", emoji: "🚇", sentence: "汽車穿過隧道，很快便到達目的地。" },
+          { char: "行人天橋", jyut: "hang4 jan4 tin1 kiu4", en: "Footbridge", emoji: "🌉", sentence: "我們利用行人天橋過馬路，既安全又方便。" },
+          { char: "機場", jyut: "gei1 coeng4", en: "Airport", emoji: "🛫", sentence: "機場裡有很多飛機升降。" },
+          { char: "碼頭", jyut: "maa5 tau4", en: "Pier", emoji: "⚓", sentence: "船隻停泊在碼頭邊。" },
+          { char: "乘坐", jyut: "sing4 co5", en: "Ride/Take", emoji: "🚌", sentence: "請排隊乘坐巴士。" },
+          { char: "購物", jyut: "kau3 mat6", en: "Shopping", emoji: "🛒", sentence: "媽媽喜歡去超級市場購物。" },
+          { char: "參觀", jyut: "caam1 gun1", en: "Visit", emoji: "👀", sentence: "我們參觀了科學館，學到了很多知識。" }
+        ]
+      },
+      {
+        id: "p3-adj-action",
+        name: "形容詞 (動作)",
+        en: "Adverbs (Action)",
+        desc: "高聲地 安靜地 悄悄地...",
+        icon: <Zap className="w-8 h-8" />,
+        color: "bg-cyan-100 border-cyan-400",
+        words: [
+          { char: "高聲地", jyut: "gou1 sing1 dei6", en: "Loudly", emoji: "📢", sentence: "他在台上高聲地朗誦。" },
+          { char: "安靜地", jyut: "on1 zing6 dei6", en: "Quietly", emoji: "🤫", sentence: "同學們安靜地在圖書館看書。" },
+          { char: "悄悄地", jyut: "ciu2 ciu2 dei6", en: "Stealthily", emoji: "👣", sentence: "小貓悄悄地走近小鳥。" },
+          { char: "緩慢地", jyut: "wun6 maan6 dei6", en: "Slowly", emoji: "🐢", sentence: "烏龜緩慢地向前爬行。" },
+          { char: "飛快地", jyut: "fei1 faai3 dei6", en: "Fast", emoji: "🐆", sentence: "獵豹飛快地追趕獵物。" },
+          { char: "趕快地", jyut: "gon2 faai3 dei6", en: "Hurriedly", emoji: "🏃", sentence: "快要遲到了，我們趕快地跑去車站。" },
+          { char: "焦急地", jyut: "ziu1 gap1 dei6", en: "Anxiously", emoji: "😰", sentence: "媽媽在門口焦急地等待我回家。" },
+          { char: "耐心地", jyut: "noi6 sam1 dei6", en: "Patiently", emoji: "🧘", sentence: "老師耐心地解答學生的問題。" },
+          { char: "認真地", jyut: "jing6 zan1 dei6", en: "Seriously", emoji: "🤓", sentence: "他認真地複習功課，準備考試。" },
+          { char: "忙碌地", jyut: "mong4 luk1 dei6", en: "Busily", emoji: "🐝", sentence: "蜜蜂在花叢中忙碌地採蜜。" },
+          { char: "辛勞地", jyut: "san1 lou4 dei6", en: "Hard", emoji: "👷", sentence: "建築工人辛勞地工作。" },
+          { char: "舒服地", jyut: "syu1 fuk6 dei6", en: "Comfortably", emoji: "🛋️", sentence: "小貓舒服地躺在沙發上睡覺。" },
+          { char: "愉快地", jyut: "jyu4 faai3 dei6", en: "Happily", emoji: "🎶", sentence: "我們愉快地唱著歌去旅行。" },
+          { char: "傷心地", jyut: "soeng1 sam1 dei6", en: "Sadly", emoji: "😭", sentence: "她傷心地哭了起來。" },
+          { char: "失望地", jyut: "sat1 mong6 dei6", en: "Disappointedly", emoji: "😞", sentence: "他失望地低下了頭。" },
+          { char: "冷靜地", jyut: "laang5 zing6 dei6", en: "Calmly", emoji: "🧊", sentence: "遇到危險要冷靜地處理。" },
+          { char: "緊張地", jyut: "gan2 zoeng1 dei6", en: "Nervously", emoji: "😖", sentence: "他緊張地握著拳頭。" },
+          { char: "熱烈地", jyut: "jit6 lit6 dei6", en: "Warmly", emoji: "👏", sentence: "觀眾熱烈地鼓掌。" },
+          { char: "不安地", jyut: "bat1 on1 dei6", en: "Uneasily", emoji: "😟", sentence: "他不安地在房間裡走來走去。" },
+          { char: "悠閒地", jyut: "jau4 haan4 dei6", en: "Leisurely", emoji: "☕", sentence: "爺爺悠閒地喝著茶。" },
+          { char: "輕鬆地", jyut: "hing1 sung1 dei6", en: "Easily", emoji: "🍃", sentence: "他輕鬆地完成了任務。" },
+          { char: "兇惡地", jyut: "hung1 ok3 dei6", en: "Fiercely", emoji: "👹", sentence: "那隻狗兇惡地吠叫。" },
+          { char: "溫柔地", jyut: "wan1 jau4 dei6", en: "Gently", emoji: "🤱", sentence: "媽媽溫柔地抱著嬰兒。" },
+          { char: "驕傲地", jyut: "giu1 ngou6 dei6", en: "Proudly", emoji: "🦚", sentence: "他驕傲地展示他的獎牌。" },
+          { char: "冷漠地", jyut: "laang5 mok6 dei6", en: "Indifferently", emoji: "😐", sentence: "他冷漠地看著窗外。" },
+          { char: "沉默地", jyut: "cam4 mak6 dei6", en: "Silently", emoji: "😶", sentence: "大家沉默地坐著，沒有說話。" },
+          { char: "爽快地", jyut: "song2 faai3 dei6", en: "Readily", emoji: "👌", sentence: "他爽快地答應了我的請求。" },
+          { char: "感動地", jyut: "gam2 dung6 dei6", en: "Touchingly", emoji: "🥹", sentence: "她感動地流下了眼淚。" },
+          { char: "嚴厲地", jyut: "jim4 lai6 dei6", en: "Severely", emoji: "😠", sentence: "老師嚴厲地批評了遲到的學生。" },
+          { char: "偷偷地", jyut: "tau1 tau1 dei6", en: "Secretly", emoji: "🕵️", sentence: "他偷偷地把禮物放在桌子上。" }
+        ]
+      },
+      {
+        id: "p3-adj-people",
+        name: "形容詞 (人物)",
+        en: "Adjectives (People)",
+        desc: "高大的 矮小的 肥胖的...",
+        icon: <User className="w-8 h-8" />,
+        color: "bg-violet-100 border-violet-400",
+        words: [
+          { char: "高大的", jyut: "gou1 daai6 dik1", en: "Tall", emoji: "🦒", sentence: "這是一棵高大的樹。" },
+          { char: "矮小的", jyut: "ngai2 siu2 dik1", en: "Short/Small", emoji: "🍄", sentence: "那個小矮人住在矮小的屋子裡。" },
+          { char: "肥胖的", jyut: "fei4 bun6 dik1", en: "Fat", emoji: "🐷", sentence: "那隻肥胖的貓很可愛。" },
+          { char: "強壯的", jyut: "koeng4 zong3 dik1", en: "Strong", emoji: "💪", sentence: "哥哥身體強壯，力氣很大。" },
+          { char: "瘦小的", jyut: "sau3 siu2 dik1", en: "Thin/Small", emoji: "🐜", sentence: "那隻瘦小的流浪狗很可憐。" },
+          { char: "勤奮的", jyut: "kan4 fan5 dik1", en: "Diligent", emoji: "🐝", sentence: "勤奮的學生會得到好成績。" },
+          { char: "頑皮的", jyut: "waan4 pei4 dik1", en: "Naughty", emoji: "😜", sentence: "那個頑皮的孩子打破了花瓶。" },
+          { char: "誠實的", jyut: "sing4 sat6 dik1", en: "Honest", emoji: "🤝", sentence: "誠實的孩子不會說謊。" },
+          { char: "有禮貌的", jyut: "jau5 lai5 maau6 dik1", en: "Polite", emoji: "🙇", sentence: "他是一個有禮貌的學生，見到老師會鞠躬。" },
+          { char: "貪吃的", jyut: "taam1 hek3 dik1", en: "Gluttonous", emoji: "😋", sentence: "貪吃的小貓偷吃了桌上的魚。" },
+          { char: "粗心大意的", jyut: "cou1 sam1 daai6 ji3 dik1", en: "Careless", emoji: "🤪", sentence: "因為粗心大意，他做錯了題目。" },
+          { char: "友善的", jyut: "jau5 sin6 dik1", en: "Friendly", emoji: "👋", sentence: "新鄰居非常友善。" },
+          { char: "聰明的", jyut: "cung1 ming4 dik1", en: "Clever", emoji: "💡", sentence: "聰明的孩子很快就學會了。" },
+          { char: "兇惡的", jyut: "hung1 ok3 dik1", en: "Fierce", emoji: "🦁", sentence: "那隻兇惡的獅子正在咆哮。" },
+          { char: "可愛的", jyut: "ho2 oi3 dik1", en: "Cute", emoji: "🧸", sentence: "那個嬰兒長得很可愛。" },
+          { char: "活潑的", jyut: "wut6 put3 dik1", en: "Lively", emoji: "🐇", sentence: "活潑的小狗在草地上跑來跑去。" },
+          { char: "好動的", jyut: "hou3 dung6 dik1", en: "Active", emoji: "⚽", sentence: "他是一個好動的孩子，坐不定。" },
+          { char: "自私的", jyut: "zi6 si1 dik1", en: "Selfish", emoji: "🙅", sentence: "我們不應該做自私的人，要學會分享。" },
+          { char: "膽小的", jyut: "daam2 siu2 dik1", en: "Timid", emoji: "🐁", sentence: "膽小的老鼠躲在洞裡不敢出來。" },
+          { char: "孤單的", jyut: "gu1 daan1 dik1", en: "Lonely", emoji: "🧍", sentence: "他一個人孤單地坐在角落。" },
+          { char: "年幼的", jyut: "nin4 jau3 dik1", en: "Young", emoji: "👶", sentence: "我們要愛護年幼的弟妹。" },
+          { char: "年老的", jyut: "nin4 lou5 dik1", en: "Old", emoji: "👴", sentence: "我們要尊敬年老的長輩。" },
+          { char: "出色的", jyut: "ceot1 sik1 dik1", en: "Outstanding", emoji: "🌟", sentence: "他在比賽中有出色的表現。" },
+          { char: "富有的", jyut: "fu3 jau5 dik1", en: "Rich", emoji: "💰", sentence: "那個富有的人捐了很多錢做善事。" },
+          { char: "貧窮的", jyut: "pan4 kung4 dik1", en: "Poor", emoji: "🏚️", sentence: "我們要幫助貧窮的人。" },
+          { char: "可憐的", jyut: "ho2 lin4 dik1", en: "Poor/Pitiable", emoji: "🥺", sentence: "那隻受傷的小鳥很可憐。" },
+          { char: "戴帽子的", jyut: "daai3 mou6 zi2 dik1", en: "Wearing a hat", emoji: "🧢", sentence: "那個戴帽子的男孩是我的朋友。" },
+          { char: "穿長褲的", jyut: "cyun1 coeng4 fu3 dik1", en: "Wearing trousers", emoji: "👖", sentence: "今天天氣冷，大家都穿長褲。" },
+          { char: "衣着整齊的", jyut: "ji1 zoek3 zing2 cai4 dik1", en: "Well-dressed", emoji: "👔", sentence: "他衣着整齊地上班。" },
+          { char: "衣着破爛的", jyut: "ji1 zoek3 po3 laan6 dik1", en: "Ragged", emoji: "🧶", sentence: "那乞丐衣着破爛，在街邊行乞。" }
+        ]
+      },
+      {
+        id: "p3-adj-object",
+        name: "形容詞 (物品)",
+        en: "Adjectives (Objects)",
+        desc: "圓圓的 尖尖的 方形的...",
+        icon: <Box className="w-8 h-8" />,
+        color: "bg-amber-100 border-amber-400",
+        words: [
+          { char: "圓圓的", jyut: "jyun4 jyun4 dik1", en: "Round", emoji: "⚽", sentence: "這是一個圓圓的皮球。" },
+          { char: "尖尖的", jyut: "zim1 zim1 dik1", en: "Pointed", emoji: "✏️", sentence: "鉛筆的筆尖是尖尖的。" },
+          { char: "方形的", jyut: "fong1 jing4 dik1", en: "Square", emoji: "⬛", sentence: "這是一個方形的盒子。" },
+          { char: "長條形的", jyut: "coeng4 tiu4 jing4 dik1", en: "Long strip", emoji: "🥖", sentence: "這是一條長條形的麵包。" },
+          { char: "巨大的", jyut: "geoi6 daai6 dik1", en: "Giant", emoji: "🐳", sentence: "大象有巨大的身體。" },
+          { char: "細小的", jyut: "sai3 siu2 dik1", en: "Tiny", emoji: "🐜", sentence: "螞蟻是很細小的昆蟲。" },
+          { char: "金黃色的", jyut: "gam1 wong4 sik1 dik1", en: "Golden yellow", emoji: "🌾", sentence: "秋天，田野一片金黃色。" },
+          { char: "色彩鮮豔的", jyut: "sik1 coi2 sin1 jim6 dik1", en: "Colorful", emoji: "🌈", sentence: "這幅畫色彩鮮豔，十分美麗。" },
+          { char: "堅硬的", jyut: "gin1 ngaang6 dik1", en: "Hard", emoji: "🪨", sentence: "石頭是堅硬的。" },
+          { char: "光滑的", jyut: "gwong1 waat6 dik1", en: "Smooth", emoji: "🔮", sentence: "這顆珠子表面很光滑。" },
+          { char: "軟綿綿的", jyut: "jyun5 min4 min4 dik1", en: "Soft", emoji: "☁️", sentence: "白雲像棉花一樣軟綿綿的。" },
+          { char: "粗糙的", jyut: "cou1 cou3 dik1", en: "Rough", emoji: "🧱", sentence: "樹皮摸起來很粗糙。" },
+          { char: "厚厚的", jyut: "hau5 hau5 dik1", en: "Thick", emoji: "📚", sentence: "這是一本厚厚的字典。" },
+          { char: "薄薄的", jyut: "bok6 bok6 dik1", en: "Thin", emoji: "📄", sentence: "這張紙薄薄的，很容易破。" },
+          { char: "亮晶晶的", jyut: "loeng6 zing1 zing1 dik1", en: "Sparkling", emoji: "💎", sentence: "天上的星星亮晶晶的。" },
+          { char: "動聽的", jyut: "dung6 ting1 dik1", en: "Melodious", emoji: "🎶", sentence: "她唱出動聽的歌曲。" },
+          { char: "可口的", jyut: "ho2 hau2 dik1", en: "Tasty", emoji: "😋", sentence: "這頓晚餐非常可口。" },
+          { char: "熱呼呼的", jyut: "jit6 fu1 fu1 dik1", en: "Hot", emoji: "♨️", sentence: "天氣冷，喝一杯熱呼呼的茶真舒服。" },
+          { char: "冰凍的", jyut: "bing1 dung3 dik1", en: "Icy", emoji: "🧊", sentence: "我想喝一杯冰凍的汽水。" },
+          { char: "珍貴的", jyut: "zan1 gwai3 dik1", en: "Precious", emoji: "💍", sentence: "這是一份珍貴的禮物。" },
+          { char: "便宜的", jyut: "pin4 ji4 dik1", en: "Cheap", emoji: "🏷️", sentence: "這件衣服很便宜。" },
+          { char: "普通的", jyut: "pou2 tung1 dik1", en: "Ordinary", emoji: "👕", sentence: "這是一件普通的T恤。" },
+          { char: "特別的", jyut: "dak6 bit6 dik1", en: "Special", emoji: "🎁", sentence: "這是一份特別的驚喜。" },
+          { char: "精彩的", jyut: "zing1 coi2 dik1", en: "Wonderful", emoji: "✨", sentence: "魔術表演非常精彩。" },
+          { char: "沉悶的", jyut: "cam4 mun6 dik1", en: "Boring", emoji: "😑", sentence: "這是一個沉悶的演講。" },
+          { char: "奇怪的", jyut: "kei4 gwaai3 dik1", en: "Strange", emoji: "👽", sentence: "這是一個奇怪的故事。" },
+          { char: "新鮮的", jyut: "san1 sin1 dik1", en: "Fresh", emoji: "🍓", sentence: "這裡有新鮮的水果。" },
+          { char: "豐富的", jyut: "fung1 fu3 dik1", en: "Rich", emoji: "🍱", sentence: "這頓晚餐很豐富。" },
+          { char: "種類繁多的", jyut: "zung2 leoi6 faan4 do1 dik1", en: "Various", emoji: "🗂️", sentence: "這裡有種類繁多的圖書。" },
+          { char: "各式各樣的", jyut: "gok3 sik1 gok3 joeng6 dik1", en: "All kinds of", emoji: "🍭", sentence: "糖果店有各式各樣的糖果。" }
+        ]
+      }
+    ]
+  }
+};
+
+// --- 背景裝飾組件 ---
+const BackgroundDecorations = () => {
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+      {/* 隨機分佈的裝飾圖示 */}
+      <Pencil className="absolute top-10 left-10 text-yellow-200/50 w-24 h-24 -rotate-12 animate-pulse-custom" />
+      <BookOpen className="absolute top-1/4 right-20 text-blue-200/50 w-32 h-32 rotate-12" />
+      <Star className="absolute bottom-20 left-1/4 text-purple-200/50 w-16 h-16 animate-bounce-custom" />
+      <GraduationCap className="absolute bottom-10 right-10 text-emerald-200/50 w-28 h-28 -rotate-6" />
+      <Palette className="absolute top-1/3 left-20 text-rose-200/50 w-20 h-20 rotate-45" />
+      <Music className="absolute bottom-1/3 right-1/4 text-orange-200/50 w-16 h-16 -rotate-12" />
+      
+      {/* 圓形裝飾 */}
+      <div className="absolute top-20 right-1/3 w-40 h-40 bg-pink-100/30 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-40 left-10 w-60 h-60 bg-blue-100/30 rounded-full blur-3xl"></div>
+    </div>
+  );
+};
+
+// --- 組件：主應用 ---
+export default function App() {
+  const [view, setView] = useState('home'); 
+  const [grade, setGrade] = useState(null);
+  const [theme, setTheme] = useState(null);
+  
+  // 導航函數
+  const goHome = () => {
+    setView('home');
+    setGrade(null);
+    setTheme(null);
+  };
+
+  const selectGrade = (g) => {
+    setGrade(g);
+    setView('mode');
+  };
+
+  const selectMode = (mode) => {
+    if (mode === 'learn') {
+      setView('learn_themes');
+    } else {
+      setView('quiz');
     }
-    </script>
+  };
 
-    <style>
-        /* 自定義動畫樣式 */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeIn {
-            animation: fadeIn 0.5s ease-out forwards;
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.8; }
-        }
-        .animate-pulse-custom {
-            animation: pulse 2s infinite;
-        }
-        @keyframes bounce-custom {
-            0%, 100% { transform: translateY(-5%); }
-            50% { transform: translateY(0); }
-        }
-        .animate-bounce-custom {
-            animation: bounce-custom 1s infinite;
-        }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-        .animate-shake {
-            animation: shake 0.5s ease-in-out;
-        }
-    </style>
-</head>
-<body class="bg-slate-50 text-slate-800">
-    <div id="root"></div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-blue-50 font-sans text-slate-800 relative">
+      <BackgroundDecorations />
+      
+      {/* 頂部導航欄 */}
+      <header className="bg-white/80 backdrop-blur-md shadow-sm p-4 flex justify-between items-center sticky top-0 z-10 border-b border-white/50">
+        <div className="flex items-center gap-2 cursor-pointer" onClick={goHome}>
+          <div className="bg-gradient-to-tr from-yellow-400 to-orange-400 p-2 rounded-xl shadow-lg transform hover:scale-105 transition-transform">
+            <BookOpen className="text-white" size={24} />
+          </div>
+          <h1 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-700 to-slate-500 tracking-wide ml-2">
+            初小學生高頻詞語表
+          </h1>
+        </div>
+        <div className="flex gap-2">
+           {view !== 'home' && (
+             <button onClick={() => setView(view === 'learn_card' ? 'learn_themes' : (view === 'learn_themes' || view === 'quiz' ? 'mode' : 'home'))} 
+                     className="bg-white hover:bg-slate-50 text-slate-600 px-4 py-2 rounded-full font-bold flex items-center gap-2 transition-all shadow-sm hover:shadow-md border border-slate-200">
+               <ArrowLeft size={18} /> 返回
+             </button>
+           )}
+        </div>
+      </header>
 
-    <!-- React 應用程式邏輯 -->
-    <script type="text/babel" data-type="module">
-        import React, { useState, useEffect, useRef } from 'react';
-        import { createRoot } from 'react-dom/client';
-        import { 
-          BookOpen, 
-          Gamepad2, 
-          Mic, 
-          Volume2, 
-          ArrowLeft, 
-          Star, 
-          Award, 
-          RefreshCcw, 
-          Home,
-          CheckCircle,
-          XCircle,
-          Smile,
-          Frown,
-          User,
-          Utensils,
-          Trees,
-          Car,
-          Shirt,
-          School,
-          Building,
-          Ticket,
-          Zap,
-          Box,
-          Heart,
-          AlertCircle
-        } from 'lucide-react';
+      {/* 主要內容區 */}
+      <main className="container mx-auto p-4 md:p-6 max-w-4xl relative z-10">
+        {view === 'home' && <GradeSelection onSelect={selectGrade} />}
+        {view === 'mode' && <ModeSelection grade={grade} onSelect={selectMode} />}
+        {view === 'learn_themes' && <ThemeSelection grade={grade} onSelect={(t) => { setTheme(t); setView('learn_card'); }} />}
+        {view === 'learn_card' && <LearningZone theme={theme} onBack={() => setView('learn_themes')} />}
+        {view === 'quiz' && <QuizZone grade={grade} onExit={() => setView('mode')} />}
+      </main>
+    </div>
+  );
+}
 
-        // --- 課程資料庫 (基於悅讀‧悅寫意) ---
-        const curriculumData = {
-          1: {
-            title: "一年級 (P1)",
-            color: "bg-emerald-500",
-            themes: [
-              {
-                id: "p1-family",
-                name: "家庭篇",
-                en: "Family",
-                desc: "我們一家人相親相愛，每天都在家裡分享快樂和溫暖。",
-                icon: <Home className="w-8 h-8" />,
-                color: "bg-orange-100 border-orange-300",
-                words: [
-                  { char: "爸爸", jyut: "baa4 baa1", en: "Father", sentence: "爸爸每天辛勤工作，照顧我們一家人。", imgColor: "#3B82F6", emoji: "👨" },
-                  { char: "媽媽", jyut: "maa4 maa1", en: "Mother", sentence: "媽媽煮的飯菜很美味，大家都喜歡吃。", imgColor: "#EF4444", emoji: "👩" },
-                  { char: "房間", jyut: "fong4 gaan1", en: "Room", sentence: "我的房間裡有很多故事書和玩具。", imgColor: "#F59E0B", emoji: "🛏️" },
-                  { char: "看書", jyut: "hon3 syu1", en: "Reading", sentence: "我喜歡坐在沙發上看有趣的圖畫書。", imgColor: "#10B981", emoji: "📖" },
-                  { char: "休息", jyut: "jau1 sik1", en: "Rest", sentence: "做完功課後，我會休息一會兒。", imgColor: "#6366F1", emoji: "😴" },
-                  { char: "早餐", jyut: "zou2 caan1", en: "Breakfast", sentence: "吃過豐富的早餐後，我便上學去。", imgColor: "#F97316", emoji: "🍞" }
-                ]
-              },
-              {
-                id: "p1-school",
-                name: "學校篇",
-                en: "School",
-                desc: "學校是學習的地方，我們在這裡認識新朋友和學習新知識。",
-                icon: <School className="w-8 h-8" />,
-                color: "bg-blue-100 border-blue-300",
-                words: [
-                  { char: "老師", jyut: "lou5 si1", en: "Teacher", sentence: "老師耐心地教導我們讀書和寫字。", imgColor: "#8B5CF6", emoji: "👩‍🏫" },
-                  { char: "同學", jyut: "tung4 hok6", en: "Classmate", sentence: "我和同學在小息時一起玩耍。", imgColor: "#EC4899", emoji: "👫" },
-                  { char: "書包", jyut: "syu1 baau1", en: "School Bag", sentence: "我的書包裡放了課本和文具。", imgColor: "#14B8A6", emoji: "🎒" },
-                  { char: "操場", jyut: "cou1 coeng4", en: "Playground", sentence: "同學們在寬闊的操場上跑步。", imgColor: "#84CC16", emoji: "🛝" },
-                  { char: "上課", jyut: "soeng5 fo3", en: "Attend Class", sentence: "上課時，我們要專心聽老師講課。", imgColor: "#06B6D4", emoji: "🔔" },
-                  { char: "遵守", jyut: "zeon1 sau2", en: "Obey", sentence: "我們都要遵守校規，做個好學生。", imgColor: "#64748B", emoji: "🙆" }
-                ]
-              },
-              {
-                id: "p1-park",
-                name: "公園篇",
-                en: "Park",
-                desc: "公園裡有美麗的花草樹木，是大家舒展身心和玩樂的好去處。",
-                icon: <Trees className="w-8 h-8" />,
-                color: "bg-green-100 border-green-300",
-                words: [
-                  { char: "公園", jyut: "gung1 jyun2", en: "Park", sentence: "星期天，爸爸帶我到公園玩耍。", imgColor: "#22C55E", emoji: "🏞️" },
-                  { char: "花兒", jyut: "faa1 ji4", en: "Flowers", sentence: "公園裡開滿了五顏六色的花兒。", imgColor: "#EAB308", emoji: "🌺" },
-                  { char: "小鳥", jyut: "siu2 niu5", en: "Bird", sentence: "小鳥在樹枝上快樂地唱歌。", imgColor: "#38BDF8", emoji: "🐦" },
-                  { char: "跑步", jyut: "paau2 bou6", en: "Running", sentence: "哥哥喜歡在公園的徑道上跑步。", imgColor: "#F43F5E", emoji: "🏃" },
-                  { char: "玩耍", jyut: "waan2 saa2", en: "Playing", sentence: "小朋友在草地上開心地玩耍。", imgColor: "#A855F7", emoji: "🤹" },
-                  { char: "天空", jyut: "tin1 hung1", en: "Sky", sentence: "藍藍的天空上飄著白白的雲朵。", imgColor: "#60A5FA", emoji: "☁️" }
-                ]
-              }
-            ]
-          },
-          2: {
-            title: "二年級 (P2)",
-            color: "bg-blue-500",
-            themes: [
-              {
-                id: "p2-family",
-                name: "家庭篇",
-                en: "Family (Advanced)",
-                desc: "親戚朋友來家裡作客，我們會熱情招待，大家一起聊天。",
-                icon: <Home className="w-8 h-8" />,
-                color: "bg-indigo-100 border-indigo-300",
-                words: [
-                  { char: "爺爺", jyut: "je4 je2", en: "Grandfather", sentence: "爺爺喜歡坐在搖椅上講故事給我們聽。", imgColor: "#6366F1", emoji: "👴" },
-                  { char: "客人", jyut: "haak3 jan4", en: "Guest", sentence: "家裡來了客人，我幫忙倒茶。", imgColor: "#F59E0B", emoji: "🍵" },
-                  { char: "家務", jyut: "gaa1 mou6", en: "Housework", sentence: "我們會分擔家務，保持家裡清潔。", imgColor: "#10B981", emoji: "🧹" },
-                  { char: "幫忙", jyut: "bong1 mong4", en: "Help", sentence: "我喜歡幫忙媽媽收拾桌子。", imgColor: "#EC4899", emoji: "🤝" },
-                  { char: "收拾", jyut: "sau1 sap6", en: "Tidy up", sentence: "玩完玩具後，要記得收拾整齊。", imgColor: "#3B82F6", emoji: "🧺" },
-                  { char: "電話", jyut: "din6 waa2", en: "Telephone", sentence: "我打電話給奶奶，祝她身體健康。", imgColor: "#F43F5E", emoji: "☎️" }
-                ]
-              },
-              {
-                id: "p2-school",
-                name: "學校篇",
-                en: "School (Advanced)",
-                desc: "在學校裡，我們除了讀書，還會參加各種有趣的活動和比賽。",
-                icon: <School className="w-8 h-8" />,
-                color: "bg-sky-100 border-sky-300",
-                words: [
-                  { char: "圖書館", jyut: "tou4 syu1 gun2", en: "Library", sentence: "圖書館裡有很多有趣的圖書。", imgColor: "#0EA5E9", emoji: "📚" },
-                  { char: "風紀", jyut: "fung1 gei2", en: "Prefect", sentence: "風紀會在走廊維持秩序。", imgColor: "#64748B", emoji: "💂" },
-                  { char: "比賽", jyut: "bei2 coi3", en: "Competition", sentence: "我們在運動會上參加跑步比賽。", imgColor: "#F59E0B", emoji: "🏆" },
-                  { char: "閱讀", jyut: "jyut6 duk6", en: "Reading", sentence: "閱讀可以增加我們的知識。", imgColor: "#8B5CF6", emoji: "🧐" },
-                  { char: "校車", jyut: "haau6 ce1", en: "School Bus", sentence: "每天早上，我都會乘搭校車上學。", imgColor: "#EAB308", emoji: "🚌" },
-                  { char: "電腦", jyut: "din6 nou5", en: "Computer", sentence: "我們在電腦室學習用電腦畫畫。", imgColor: "#3B82F6", emoji: "💻" }
-                ]
-              },
-              {
-                id: "p2-activity",
-                name: "活動篇",
-                en: "Activities",
-                desc: "假日時，我們會去不同的地方遊玩，享受愉快的家庭時光。",
-                icon: <Ticket className="w-8 h-8" />,
-                color: "bg-purple-100 border-purple-300",
-                words: [
-                  { char: "遊樂場", jyut: "jau4 lok6 coeng4", en: "Playground/Theme Park", sentence: "遊樂場裡有很多人在玩遊戲。", imgColor: "#D946EF", emoji: "🎠" },
-                  { char: "摩天輪", jyut: "mo1 tin1 leon4", en: "Ferris Wheel", sentence: "坐上摩天輪，可以看到美麗的風景。", imgColor: "#22C55E", emoji: "🎡" },
-                  { char: "游泳", jyut: "jau4 wing6", en: "Swimming", sentence: "夏天時，我最喜歡去海灘游泳。", imgColor: "#06B6D4", emoji: "🏊" },
-                  { char: "看電影", jyut: "hon3 din6 jing2", en: "Watch Movie", sentence: "我們一家人去戲院看電影。", imgColor: "#6366F1", emoji: "🎬" },
-                  { char: "郊遊", jyut: "gaau1 jau4", en: "Picnic/Hiking", sentence: "秋天天氣涼爽，最適合去郊遊。", imgColor: "#84CC16", emoji: "🥪" },
-                  { char: "聖誕節", jyut: "sing3 daan3 zit3", en: "Christmas", sentence: "聖誕節時，我們會交換禮物。", imgColor: "#EF4444", emoji: "🎄" }
-                ]
-              },
-              {
-                id: "p2-food",
-                name: "飲食篇",
-                en: "Food & Dining",
-                desc: "食物種類豐富，我們要均衡飲食，身體才會健康強壯。",
-                icon: <Utensils className="w-8 h-8" />,
-                color: "bg-yellow-100 border-yellow-300",
-                words: [
-                  { char: "廚師", jyut: "cyu4 si1", en: "Chef", sentence: "廚師用心製作美味的食物。", imgColor: "#F97316", emoji: "👨‍🍳" },
-                  { char: "蘋果", jyut: "ping4 gwo2", en: "Apple", sentence: "多吃蘋果對身體有益。", imgColor: "#EF4444", emoji: "🍎" },
-                  { char: "美味", jyut: "mei5 mei6", en: "Delicious", sentence: "這頓晚餐真是豐富又美味。", imgColor: "#F59E0B", emoji: "😋" },
-                  { char: "茶餐廳", jyut: "caa4 caan1 teng1", en: "Cafe (HK Style)", sentence: "我們在茶餐廳吃午餐。", imgColor: "#8B5CF6", emoji: "☕" },
-                  { char: "超級市場", jyut: "ciu1 kap1 si5 coeng4", en: "Supermarket", sentence: "媽媽帶我去超級市場買東西。", imgColor: "#3B82F6", emoji: "🛒" },
-                  { char: "健康", jyut: "gin6 hong1", en: "Healthy", sentence: "多做運動，身體會更健康。", imgColor: "#10B981", emoji: "🥗" }
-                ]
-              },
-              {
-                id: "p2-emotion-pos",
-                name: "心理 (正面)",
-                en: "Positive Emotions",
-                desc: "當遇到好事或被稱讚時，我們會感到開心和滿足。",
-                icon: <Smile className="w-8 h-8" />,
-                color: "bg-rose-100 border-rose-300",
-                words: [
-                  { char: "開心", jyut: "hoi1 sam1", en: "Happy", sentence: "收到禮物，我感到很開心。", imgColor: "#F43F5E", emoji: "😊" },
-                  { char: "快樂", jyut: "faai3 lok6", en: "Joyful", sentence: "祝你生日快樂！", imgColor: "#FB7185", emoji: "😄" },
-                  { char: "滿足", jyut: "mun5 zuk1", en: "Satisfied", sentence: "吃飽後，我感到很滿足。", imgColor: "#FBBF24", emoji: "😌" },
-                  { char: "自信", jyut: "zi6 seon3", en: "Confident", sentence: "他充滿自信地在台上演講。", imgColor: "#3B82F6", emoji: "🦁" },
-                  { char: "興奮", jyut: "hing1 fan5", en: "Excited", sentence: "明天去旅行，我感到很興奮。", imgColor: "#F97316", emoji: "🤩" },
-                  { char: "幸福", jyut: "hang6 fuk1", en: "Blessed", sentence: "一家人在一起，我覺得很幸福。", imgColor: "#EC4899", emoji: "🥰" }
-                ]
-              },
-              {
-                id: "p2-emotion-neg",
-                name: "心理 (負面)",
-                en: "Negative Emotions",
-                desc: "遇到困難或犯錯時，我們可能會感到傷心或害怕。",
-                icon: <Frown className="w-8 h-8" />,
-                color: "bg-gray-100 border-gray-300",
-                words: [
-                  { char: "傷心", jyut: "soeng1 sam1", en: "Sad", sentence: "心愛的玩具壞了，我很傷心。", imgColor: "#64748B", emoji: "😢" },
-                  { char: "害怕", jyut: "hoi6 paa3", en: "Scared", sentence: "打雷的聲音很大，我很害怕。", imgColor: "#475569", emoji: "😱" },
-                  { char: "擔心", jyut: "daam1 sam1", en: "Worried", sentence: "媽媽擔心我生病，叫我多穿衣服。", imgColor: "#94A3B8", emoji: "😟" },
-                  { char: "生氣", jyut: "saang1 hei3", en: "Angry", sentence: "弟弟搶我的玩具，我很生氣。", imgColor: "#EF4444", emoji: "😠" },
-                  { char: "失望", jyut: "sat1 mong6", en: "Disappointed", sentence: "比賽輸了，隊員們都很失望。", imgColor: "#334155", emoji: "😞" },
-                  { char: "緊張", jyut: "gan2 zoeng1", en: "Nervous", sentence: "考試前，我感到有點緊張。", imgColor: "#F59E0B", emoji: "😰" }
-                ]
-              }
-            ]
-          },
-          3: {
-            title: "三年級 (P3)",
-            color: "bg-purple-500",
-            themes: [
-              {
-                id: "p3-community",
-                name: "社區篇",
-                en: "Community",
-                desc: "社區裡有各種設施和服務，方便我們的日常生活。",
-                icon: <Building className="w-8 h-8" />,
-                color: "bg-teal-100 border-teal-300",
-                words: [
-                  { char: "圖書館", jyut: "tou4 syu1 gun2", en: "Public Library", sentence: "社區圖書館裡有很多書供借閱。", imgColor: "#0D9488", emoji: "📚" },
-                  { char: "醫院", jyut: "ji1 jyun2", en: "Hospital", sentence: "生病時，我們要去醫院看醫生。", imgColor: "#EF4444", emoji: "🏥" },
-                  { char: "郵政局", jyut: "jau4 zing3 guk2", en: "Post Office", sentence: "我去郵政局寄信給朋友。", imgColor: "#10B981", emoji: "🏣" },
-                  { char: "警察", jyut: "ging2 caat3", en: "Police", sentence: "警察維持治安，保護市民。", imgColor: "#3B82F6", emoji: "👮" },
-                  { char: "交通", jyut: "gaau1 tung1", en: "Traffic", sentence: "這條馬路的交通很繁忙。", imgColor: "#F59E0B", emoji: "🚦" },
-                  { char: "購物", jyut: "kau3 mat6", en: "Shopping", sentence: "週末，很多人到商場購物。", imgColor: "#EC4899", emoji: "🛍️" }
-                ]
-              },
-              {
-                id: "p3-adj-action",
-                name: "形容詞 (動作)",
-                en: "Adverbs (Action)",
-                desc: "使用適當的詞語來形容動作，可以讓句子更生動。",
-                icon: <Zap className="w-8 h-8" />,
-                color: "bg-cyan-100 border-cyan-300",
-                words: [
-                  { char: "認真地", jyut: "jing6 zan1 dei6", en: "Seriously", sentence: "同學們都在認真地做功課。", imgColor: "#0891B2", emoji: "✍️" },
-                  { char: "飛快地", jyut: "fei1 faai3 dei6", en: "Rapidly", sentence: "小狗飛快地跑向主人。", imgColor: "#F59E0B", emoji: "🐆" },
-                  { char: "悄悄地", jyut: "ciu2 ciu2 dei6", en: "Quietly", sentence: "他悄悄地走進房間，不想吵醒大家。", imgColor: "#64748B", emoji: "🤫" },
-                  { char: "愉快地", jyut: "jyu4 faai3 dei6", en: "Happily", sentence: "我們愉快地唱著歌。", imgColor: "#F472B6", emoji: "🎵" },
-                  { char: "焦急地", jyut: "ziu1 gap1 dei6", en: "Anxiously", sentence: "他在門外焦急地等待消息。", imgColor: "#F97316", emoji: "😖" },
-                  { char: "細心地", jyut: "sai3 sam1 dei6", en: "Carefully", sentence: "護士細心地照顧病人。", imgColor: "#10B981", emoji: "🥚" }
-                ]
-              },
-              {
-                id: "p3-adj-people",
-                name: "形容詞 (人物)",
-                en: "Adjectives (People)",
-                desc: "我們可以用不同的詞語來形容人的外表和性格。",
-                icon: <User className="w-8 h-8" />,
-                color: "bg-violet-100 border-violet-300",
-                words: [
-                  { char: "誠實的", jyut: "sing4 sat6 dik1", en: "Honest", sentence: "他是一個誠實的孩子，從不說謊。", imgColor: "#8B5CF6", emoji: "🤞" },
-                  { char: "勤奮的", jyut: "kan4 fan5 dik1", en: "Diligent", sentence: "勤奮的學生會得到好成績。", imgColor: "#10B981", emoji: "🐝" },
-                  { char: "可愛的", jyut: "ho2 oi3 dik1", en: "Cute", sentence: "那隻小貓長得非常可愛。", imgColor: "#F472B6", emoji: "🧸" },
-                  { char: "強壯的", jyut: "koeng4 zong3 dik1", en: "Strong", sentence: "哥哥身體強壯，能夠搬起重物。", imgColor: "#EF4444", emoji: "💪" },
-                  { char: "友善的", jyut: "jau5 sin6 dik1", en: "Friendly", sentence: "新鄰居非常友善，主動跟我們打招呼。", imgColor: "#F59E0B", emoji: "👋" },
-                  { char: "粗心的", jyut: "cou1 sam1 dik1", en: "Careless", sentence: "因為粗心大意，他寫錯了字。", imgColor: "#64748B", emoji: "🤪" }
-                ]
-              },
-              {
-                id: "p3-adj-object",
-                name: "形容詞 (物品)",
-                en: "Adjectives (Objects)",
-                desc: "形容物品的形狀、顏色和質感，能讓人更清楚它的樣子。",
-                icon: <Box className="w-8 h-8" />,
-                color: "bg-amber-100 border-amber-300",
-                words: [
-                  { char: "圓圓的", jyut: "jyun4 jyun4 dik1", en: "Round", sentence: "這是一個圓圓的皮球。", imgColor: "#F59E0B", emoji: "⚽" },
-                  { char: "珍貴的", jyut: "zan1 gwai3 dik1", en: "Precious", sentence: "這是一份珍貴的禮物。", imgColor: "#EC4899", emoji: "💎" },
-                  { char: "巨大的", jyut: "geoi6 daai6 dik1", en: "Giant", sentence: "大象有巨大的身體。", imgColor: "#64748B", emoji: "🐳" },
-                  { char: "柔軟的", jyut: "jau4 jyun5 dik1", en: "Soft", sentence: "這張床像棉花一樣柔軟。", imgColor: "#3B82F6", emoji: "☁️" },
-                  { char: "新鮮的", jyut: "san1 sin1 dik1", en: "Fresh", sentence: "這裡有新鮮的水果和蔬菜。", imgColor: "#10B981", emoji: "🍓" },
-                  { char: "精彩的", jyut: "zing1 coi2 dik1", en: "Wonderful", sentence: "這場表演非常精彩。", imgColor: "#F43F5E", emoji: "✨" }
-                ]
-              }
-            ]
-          }
-        };
+// --- 1. 年級選擇區 ---
+function GradeSelection({ onSelect }) {
+  return (
+    <div className="flex flex-col items-center animate-fadeIn">
+      <h2 className="text-4xl font-bold text-center mb-12 text-slate-700 drop-shadow-sm">請選擇年級</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full px-4">
+        {[1, 2, 3].map((g) => (
+          <button
+            key={g}
+            onClick={() => onSelect(g)}
+            className="group relative bg-white/90 backdrop-blur border-b-8 border-r-8 border-slate-200 hover:border-yellow-400 active:border-0 active:translate-y-2 active:translate-x-2 rounded-[2rem] p-8 transition-all duration-200 flex flex-col items-center justify-center gap-6 border-2 border-slate-100 shadow-xl hover:shadow-2xl"
+          >
+            <div className={`w-24 h-24 rounded-full flex items-center justify-center text-4xl font-bold text-white shadow-lg transform group-hover:scale-110 transition-transform duration-300
+              ${g === 1 ? 'bg-gradient-to-br from-emerald-400 to-teal-500' : g === 2 ? 'bg-gradient-to-br from-blue-400 to-indigo-500' : 'bg-gradient-to-br from-purple-400 to-fuchsia-500'}`}>
+              P{g}
+            </div>
+            <span className="text-3xl font-bold text-slate-600 group-hover:text-slate-800">
+              {g === 1 ? '一年級' : g === 2 ? '二年級' : '三年級'}
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-        // --- 組件：主應用 ---
-        function App() {
-          const [view, setView] = useState('home'); 
-          const [grade, setGrade] = useState(null);
-          const [theme, setTheme] = useState(null);
+// --- 2. 模式選擇區 ---
+function ModeSelection({ grade, onSelect }) {
+  const gradeInfo = curriculumData[grade];
+  
+  return (
+    <div className="flex flex-col items-center animate-fadeIn">
+      <div className={`${gradeInfo.color.replace('bg-', 'bg-gradient-to-r from-').replace('500', '400 to-') + gradeInfo.color.replace('bg-', '')} text-white px-8 py-3 rounded-full text-2xl font-bold mb-8 shadow-lg transform -rotate-2`}>
+        {gradeInfo.title}
+      </div>
+      <h3 className="text-3xl font-bold text-slate-800 mb-12">你想做什麼？</h3>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-2xl px-4">
+        <button 
+          onClick={() => onSelect('learn')}
+          className="bg-white/90 backdrop-blur border-4 border-emerald-100 hover:border-emerald-400 rounded-[2.5rem] p-10 flex flex-col items-center gap-6 transition-all hover:shadow-2xl hover:-translate-y-1 group"
+        >
+          <div className="bg-emerald-100 p-8 rounded-full group-hover:bg-emerald-200 transition-colors shadow-inner">
+            <BookOpen size={64} className="text-emerald-600" />
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-slate-800 mb-2">學習區</div>
+            <div className="text-slate-500 text-xl font-medium">Learning Zone</div>
+          </div>
+        </button>
+
+        <button 
+          onClick={() => onSelect('quiz')}
+          className="bg-white/90 backdrop-blur border-4 border-rose-100 hover:border-rose-400 rounded-[2.5rem] p-10 flex flex-col items-center gap-6 transition-all hover:shadow-2xl hover:-translate-y-1 group"
+        >
+          <div className="bg-rose-100 p-8 rounded-full group-hover:bg-rose-200 transition-colors shadow-inner">
+            <Gamepad2 size={64} className="text-rose-600" />
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-slate-800 mb-2">測試區</div>
+            <div className="text-slate-500 text-xl font-medium">Quiz Zone</div>
+          </div>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// --- 3. 主題選擇區 ---
+function ThemeSelection({ grade, onSelect }) {
+  const themes = curriculumData[grade].themes;
+  const gradeInfo = curriculumData[grade];
+
+  return (
+    <div className="animate-fadeIn">
+      <div className="flex flex-col items-center mb-10">
+        <div className={`bg-gradient-to-r from-gray-700 to-gray-600 text-white px-6 py-2 rounded-full text-base font-bold mb-4 shadow-md`}>
+            {gradeInfo.title}
+        </div>
+        <h2 className="text-4xl font-bold text-center text-slate-800">選擇學習主題</h2>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-2">
+        {themes.map((theme) => (
+          <button
+            key={theme.id}
+            onClick={() => onSelect(theme)}
+            className={`relative overflow-hidden rounded-[2rem] p-6 transition-all hover:scale-105 hover:shadow-xl border-b-4 text-left ${theme.color} bg-opacity-60 backdrop-blur-sm border-opacity-60 flex flex-col h-full group`}
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div className="bg-white p-4 rounded-2xl shadow-sm text-slate-700 group-hover:scale-110 transition-transform">
+                {theme.icon}
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold text-slate-800 mb-2">{theme.name}</h3>
+            <p className="text-slate-600 font-medium mb-4 italic">{theme.en}</p>
+            <p className="text-sm text-slate-600 line-clamp-2 mt-auto bg-white/40 p-2 rounded-lg">{theme.desc}</p>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// --- 4. 學習區 (核心功能) ---
+function LearningZone({ theme, onBack }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  const word = theme.words[currentIndex];
+
+  // 語音合成 (TTS)
+  const playAudio = (text) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // 停止之前的語音
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'zh-HK'; // 設定為廣東話
+      utterance.rate = 0.8; // 稍微放慢語速適合兒童
+      window.speechSynthesis.speak(utterance);
+    } else {
+      alert("您的瀏覽器不支援語音播放");
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center animate-fadeIn max-w-2xl mx-auto">
+      {/* 頂部標題與進度 */}
+      <div className="w-full mb-8 px-4">
+         <h3 className="text-2xl font-bold text-slate-600 text-center mb-4">{theme.name}</h3>
+         <div className="w-full bg-white rounded-full h-4 p-1 shadow-inner">
+            <div className="bg-gradient-to-r from-emerald-400 to-teal-500 h-2 rounded-full transition-all duration-300 shadow-sm" 
+                 style={{ width: `${((currentIndex + 1) / theme.words.length) * 100}%` }}></div>
+         </div>
+         <p className="text-right text-base font-bold text-slate-400 mt-2">{currentIndex + 1} / {theme.words.length}</p>
+      </div>
+
+      {/* 學習卡片 */}
+      <div className="bg-white/90 backdrop-blur w-full rounded-[3rem] shadow-2xl p-8 md:p-12 relative border-4 border-white">
+        
+        {/* 圖片區塊 - 維持 Emoji 顯示 */}
+        <div 
+            className="w-full h-48 md:h-64 rounded-[2rem] mb-8 shadow-inner flex items-center justify-center relative group bg-slate-50 border-2 border-slate-100"
+        >
+           <div className="text-9xl md:text-[10rem] drop-shadow-xl transform transition-transform duration-500 group-hover:scale-110 filter hover:brightness-110 cursor-default select-none">
+               {word.emoji}
+           </div>
+        </div>
+
+        {/* 文字資訊 */}
+        <div className="text-center space-y-4">
+          <h1 className="text-6xl md:text-8xl font-bold text-slate-800 tracking-wider font-serif drop-shadow-sm">
+            {word.char}
+          </h1>
           
-          const goHome = () => {
-            setView('home');
-            setGrade(null);
-            setTheme(null);
-          };
+          <div className="flex items-center justify-center gap-4 py-2">
+            <span className="text-2xl text-slate-500 font-medium font-mono bg-slate-100 px-6 py-2 rounded-2xl">
+              {word.jyut}
+            </span>
+            <button 
+              onClick={() => playAudio(word.char)}
+              className="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white p-3 rounded-full transition-all shadow-lg hover:shadow-blue-200"
+              title="聆聽發音"
+            >
+              <Volume2 size={24} />
+            </button>
+          </div>
 
-          const selectGrade = (g) => {
-            setGrade(g);
-            setView('mode');
-          };
+          <p className="text-3xl text-slate-400 font-serif italic">{word.en}</p>
 
-          const selectMode = (mode) => {
-            if (mode === 'learn') {
-              setView('learn_themes');
-            } else {
-              setView('quiz');
-            }
-          };
+          {/* 例句區 */}
+          <div className="mt-8 bg-yellow-50 p-6 rounded-3xl border-2 border-yellow-200 text-slate-700 relative group cursor-pointer hover:bg-yellow-100 transition-colors shadow-sm" onClick={() => playAudio(word.sentence)}>
+              <Volume2 size={20} className="absolute top-4 right-4 text-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <p className="text-xl font-medium leading-relaxed">「{word.sentence}」</p>
+          </div>
+        </div>
+      </div>
 
-          return (
-            <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
-              {/* 頂部導航欄 */}
-              <header className="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-10">
-                <div className="flex items-center gap-2 cursor-pointer" onClick={goHome}>
-                  <div className="bg-yellow-400 p-2 rounded-full">
-                    <BookOpen className="text-white" size={24} />
-                  </div>
-                  <h1 className="text-xl md:text-2xl font-bold text-slate-700 tracking-wide ml-2">
-                    初小學生高頻詞語表
-                  </h1>
-                </div>
-                <div className="flex gap-2">
-                   {view !== 'home' && (
-                     <button onClick={() => setView(view === 'learn_card' ? 'learn_themes' : (view === 'learn_themes' || view === 'quiz' ? 'mode' : 'home'))} 
-                             className="bg-slate-200 hover:bg-slate-300 text-slate-600 px-4 py-2 rounded-full font-bold flex items-center gap-2 transition-colors">
-                       <ArrowLeft size={18} /> 返回
-                     </button>
-                   )}
-                </div>
-              </header>
-
-              {/* 主要內容區 */}
-              <main className="container mx-auto p-4 md:p-6 max-w-4xl">
-                {view === 'home' && <GradeSelection onSelect={selectGrade} />}
-                {view === 'mode' && <ModeSelection grade={grade} onSelect={selectMode} />}
-                {view === 'learn_themes' && <ThemeSelection grade={grade} onSelect={(t) => { setTheme(t); setView('learn_card'); }} />}
-                {view === 'learn_card' && <LearningZone theme={theme} onBack={() => setView('learn_themes')} />}
-                {view === 'quiz' && <QuizZone grade={grade} onExit={() => setView('mode')} />}
-              </main>
-            </div>
-          );
-        }
-
-        // --- 1. 年級選擇區 ---
-        function GradeSelection({ onSelect }) {
-          return (
-            <div className="flex flex-col items-center animate-fadeIn">
-              <h2 className="text-3xl font-bold text-center mb-8 text-slate-700">請選擇年級</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-                {[1, 2, 3].map((g) => (
-                  <button
-                    key={g}
-                    onClick={() => onSelect(g)}
-                    className="group relative bg-white border-b-8 border-r-8 border-slate-200 hover:border-yellow-400 active:border-0 active:translate-y-2 active:translate-x-2 rounded-3xl p-8 transition-all duration-150 flex flex-col items-center justify-center gap-4 border-2 border-slate-100"
-                  >
-                    <div className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold text-white shadow-lg
-                      ${g === 1 ? 'bg-emerald-400' : g === 2 ? 'bg-blue-400' : 'bg-purple-400'} group-hover:scale-110 transition-transform`}>
-                      P{g}
-                    </div>
-                    <span className="text-2xl font-bold text-slate-600 group-hover:text-slate-800">
-                      {g === 1 ? '一年級' : g === 2 ? '二年級' : '三年級'}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          );
-        }
-
-        // --- 2. 模式選擇區 ---
-        function ModeSelection({ grade, onSelect }) {
-          const gradeInfo = curriculumData[grade];
-          
-          return (
-            <div className="flex flex-col items-center animate-fadeIn">
-              <div className={`${gradeInfo.color} text-white px-6 py-2 rounded-full text-xl font-bold mb-6 shadow-md`}>
-                {gradeInfo.title}
-              </div>
-              <h3 className="text-3xl font-bold text-slate-800 mb-10">你想做什麼？</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-2xl">
-                <button 
-                  onClick={() => onSelect('learn')}
-                  className="bg-white border-4 border-emerald-100 hover:border-emerald-400 rounded-3xl p-8 flex flex-col items-center gap-4 transition-all hover:shadow-xl group"
-                >
-                  <div className="bg-emerald-100 p-6 rounded-full group-hover:bg-emerald-200 transition-colors">
-                    <BookOpen size={64} className="text-emerald-600" />
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-slate-800">學習區</div>
-                    <div className="text-slate-500 text-lg font-medium">Learning Zone</div>
-                  </div>
-                </button>
-
-                <button 
-                  onClick={() => onSelect('quiz')}
-                  className="bg-white border-4 border-rose-100 hover:border-rose-400 rounded-3xl p-8 flex flex-col items-center gap-4 transition-all hover:shadow-xl group"
-                >
-                  <div className="bg-rose-100 p-6 rounded-full group-hover:bg-rose-200 transition-colors">
-                    <Gamepad2 size={64} className="text-rose-600" />
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-slate-800">測試區</div>
-                    <div className="text-slate-500 text-lg font-medium">Quiz Zone</div>
-                  </div>
-                </button>
-              </div>
-            </div>
-          );
-        }
-
-        // --- 3. 主題選擇區 ---
-        function ThemeSelection({ grade, onSelect }) {
-          const themes = curriculumData[grade].themes;
-          const gradeInfo = curriculumData[grade];
-
-          return (
-            <div className="animate-fadeIn">
-              <div className="flex flex-col items-center mb-8">
-                <div className={`${gradeInfo.color} text-white px-4 py-1 rounded-full text-sm font-bold mb-2`}>
-                    {gradeInfo.title}
-                </div>
-                <h2 className="text-3xl font-bold text-center text-slate-700">選擇學習主題</h2>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {themes.map((theme) => (
-                  <button
-                    key={theme.id}
-                    onClick={() => onSelect(theme)}
-                    className={`relative overflow-hidden rounded-3xl p-6 transition-all hover:scale-105 hover:shadow-lg border-b-4 text-left ${theme.color} bg-opacity-40 border-opacity-50 flex flex-col h-full`}
-                  >
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="bg-white p-3 rounded-2xl shadow-sm text-slate-700">
-                        {theme.icon}
-                      </div>
-                    </div>
-                    <h3 className="text-2xl font-bold text-slate-800 mb-1">{theme.name}</h3>
-                    <p className="text-slate-600 font-medium mb-3 italic">{theme.en}</p>
-                    <p className="text-sm text-slate-500 line-clamp-2 mt-auto">{theme.desc}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          );
-        }
-
-        // --- 4. 學習區 (核心功能) ---
-        function LearningZone({ theme, onBack }) {
-          const [currentIndex, setCurrentIndex] = useState(0);
-          const [feedback, setFeedback] = useState(null); 
-          const [isSpeaking, setIsSpeaking] = useState(false);
-
-          const word = theme.words[currentIndex];
-
-          // 語音合成 (TTS)
-          const playAudio = (text) => {
-            if ('speechSynthesis' in window) {
-              window.speechSynthesis.cancel(); 
-              const utterance = new SpeechSynthesisUtterance(text);
-              utterance.lang = 'zh-HK'; 
-              utterance.rate = 0.8; 
-              window.speechSynthesis.speak(utterance);
-            } else {
-              alert("您的瀏覽器不支援語音播放");
-            }
-          };
-
-          // 語音識別 (STT)
-          const startListening = () => {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-              alert("抱歉，您的瀏覽器不支援語音識別功能。請嘗試使用 Google Chrome 或 Edge。");
-              return;
-            }
-
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'zh-HK';
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
-
-            setFeedback('listening');
-
-            recognition.start();
-
-            recognition.onresult = (event) => {
-              const transcript = event.results[0][0].transcript;
-              const cleanTranscript = transcript.replace(/[.,\/#!$%\^&\*;:{}=\-_`~() ]/g,"");
-              const cleanTarget = word.char.replace(/[.,\/#!$%\^&\*;:{}=\-_`~() ]/g,"");
-
-              if (cleanTranscript.includes(cleanTarget) || cleanTranscript === cleanTarget) {
-                setFeedback('success');
-                playSound('correct');
-              } else {
-                setFeedback('retry');
-                playSound('wrong');
-              }
-            };
-
-            recognition.onspeechend = () => {
-              recognition.stop();
-            };
-
-            recognition.onerror = (event) => {
-              console.error(event.error);
-              setFeedback('retry');
-            };
-          };
-
-          const playSound = (type) => {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const msg = type === 'correct' ? "好棒！答對了" : "再試一次";
-                const u = new SpeechSynthesisUtterance(msg);
-                u.lang = 'zh-HK';
-                window.speechSynthesis.speak(u);
-            }
-          };
-
-          return (
-            <div className="flex flex-col items-center animate-fadeIn max-w-2xl mx-auto">
-              <div className="w-full mb-6">
-                 <h3 className="text-xl font-bold text-slate-500 text-center mb-2">{theme.name}</h3>
-                 <div className="w-full bg-slate-200 rounded-full h-2.5">
-                    <div className="bg-emerald-500 h-2.5 rounded-full transition-all duration-300" 
-                         style={{ width: `${((currentIndex + 1) / theme.words.length) * 100}%` }}></div>
-                 </div>
-                 <p className="text-right text-sm text-slate-400 mt-1">{currentIndex + 1} / {theme.words.length}</p>
-              </div>
-
-              <div className="bg-white w-full rounded-[40px] shadow-xl p-6 md:p-10 relative border-4 border-slate-100">
-                
-                <div 
-                    className="w-full h-40 md:h-56 rounded-3xl mb-6 shadow-md overflow-hidden flex items-center justify-center relative group"
-                    style={{ backgroundColor: word.imgColor }}
-                >
-                   <div className="text-8xl md:text-9xl drop-shadow-md transform transition-transform duration-500 group-hover:scale-110">
-                       {word.emoji}
-                   </div>
-                </div>
-
-                <div className="text-center space-y-2">
-                  <h1 className="text-5xl md:text-7xl font-bold text-slate-800 tracking-wider font-serif">
-                    {word.char}
-                  </h1>
-                  
-                  <div className="flex items-center justify-center gap-3 py-2">
-                    <span className="text-xl text-slate-500 font-medium font-mono bg-slate-100 px-4 py-1 rounded-lg">
-                      {word.jyut}
-                    </span>
-                    <button 
-                      onClick={() => playAudio(word.char)}
-                      className="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white p-2 rounded-full transition-all shadow-lg hover:shadow-blue-200"
-                      title="聆聽發音"
-                    >
-                      <Volume2 size={20} />
-                    </button>
-                  </div>
-
-                  <p className="text-2xl text-slate-400 font-serif italic">{word.en}</p>
-
-                  <div className="mt-4 bg-yellow-50 p-4 rounded-xl border border-yellow-200 text-slate-700 relative group cursor-pointer" onClick={() => playAudio(word.sentence)}>
-                      <Volume2 size={16} className="absolute top-2 right-2 text-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <p className="text-lg font-medium">「{word.sentence}」</p>
-                  </div>
-                </div>
-
-                <div className="mt-8 flex flex-col items-center justify-center border-t pt-6 border-slate-100">
-                    <div className="relative">
-                        {feedback === 'listening' && (
-                            <span className="absolute -inset-4 rounded-full bg-purple-200 animate-ping opacity-75"></span>
-                        )}
-                        <button 
-                            onClick={startListening}
-                            disabled={feedback === 'listening'}
-                            className={`relative z-10 w-20 h-20 rounded-full flex items-center justify-center shadow-xl transition-all transform hover:scale-105 active:scale-95
-                                ${feedback === 'listening' ? 'bg-purple-600' : 'bg-purple-500 hover:bg-purple-600'} text-white`}
-                        >
-                            <Mic size={32} />
-                        </button>
-                    </div>
-                    
-                    <p className="mt-3 text-slate-500 font-medium text-sm">按住麥克風讀出「{word.char}」</p>
-
-                    <div className="h-12 mt-2 flex items-center justify-center w-full">
-                        {feedback === 'success' && (
-                            <div className="flex items-center gap-2 animate-bounce bg-green-100 text-green-700 px-6 py-2 rounded-full">
-                                <div className="flex gap-0.5 text-yellow-500">
-                                    <Star fill="currentColor" size={20} />
-                                    <Star fill="currentColor" size={20} />
-                                    <Star fill="currentColor" size={20} />
-                                </div>
-                                <span className="font-bold">正確！</span>
-                            </div>
-                        )}
-                        {feedback === 'retry' && (
-                            <div className="flex items-center gap-2 text-rose-600 bg-rose-100 px-6 py-2 rounded-full animate-shake">
-                                <RefreshCcw size={18} />
-                                <span className="font-bold">再試一次！</span>
-                            </div>
-                        )}
-                    </div>
-                </div>
-              </div>
-
-              <div className="flex gap-4 mt-6 w-full justify-between">
-                 <button 
-                   onClick={() => {
-                     if (currentIndex > 0) {
-                         setCurrentIndex(prev => prev - 1);
-                         setFeedback(null);
-                     }
-                   }}
-                   disabled={currentIndex === 0}
-                   className={`flex-1 py-3 rounded-xl font-bold text-lg transition-all ${currentIndex === 0 ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-600 shadow-md hover:shadow-lg'}`}
-                 >
-                   上一頁
-                 </button>
-                 
-                 <button 
-                   onClick={() => {
-                     if (currentIndex < theme.words.length - 1) {
-                         setCurrentIndex(prev => prev + 1);
-                         setFeedback(null);
-                     } else {
-                         onBack();
-                     }
-                   }}
-                   className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 py-3 rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all"
-                 >
-                   {currentIndex === theme.words.length - 1 ? '完成主題' : '下一個'}
-                 </button>
-              </div>
-            </div>
-          );
-        }
-
-        // --- 5. 測試區 ---
-        function QuizZone({ grade, onExit }) {
-          const [quizState, setQuizState] = useState('intro'); 
-          const [currentQ, setCurrentQ] = useState(0);
-          const [score, setScore] = useState(0);
-          const [questions, setQuestions] = useState([]);
-          const [showFeedback, setShowFeedback] = useState(null); 
-
-          useEffect(() => {
-            if (quizState === 'intro') {
-              const allWords = curriculumData[grade].themes.flatMap(t => t.words);
-              const questionCount = Math.min(5, allWords.length);
-              const shuffled = [...allWords].sort(() => 0.5 - Math.random());
-              
-              const selected = shuffled.slice(0, questionCount).map(word => {
-                const distractors = allWords.filter(w => w.char !== word.char)
-                                            .sort(() => 0.5 - Math.random())
-                                            .slice(0, 2);
-                const options = [word, ...distractors].sort(() => 0.5 - Math.random());
-                const type = Math.random() > 0.5 ? 'text-to-image' : 'audio-to-image';
-                return { answer: word, options, type };
-              });
-              setQuestions(selected);
-            }
-          }, [grade, quizState]);
-
-          const handleAnswer = (option) => {
-            if (showFeedback) return;
-
-            const isCorrect = option.char === questions[currentQ].answer.char;
-            if (isCorrect) setScore(s => s + 1);
-            
-            setShowFeedback(isCorrect ? 'correct' : 'wrong');
-            playSound(isCorrect ? 'correct' : 'wrong');
-
-            setTimeout(() => {
-              setShowFeedback(null);
-              if (currentQ < questions.length - 1) {
-                setCurrentQ(q => q + 1);
-              } else {
-                setQuizState('result');
-              }
-            }, 1500);
-          };
-
-          const playSound = (type) => {
-             if ('speechSynthesis' in window) {
-                 window.speechSynthesis.cancel();
-                 const msg = type === 'correct' ? "答對了" : "答錯了";
-                 const u = new SpeechSynthesisUtterance(msg);
-                 u.lang = 'zh-HK'; 
-                 u.rate = 1.2;
-                 window.speechSynthesis.speak(u);
+      {/* 底部導航 */}
+      <div className="flex gap-6 mt-8 w-full justify-between px-2">
+         <button 
+           onClick={() => {
+             if (currentIndex > 0) {
+                 setCurrentIndex(prev => prev - 1);
              }
-          };
+           }}
+           disabled={currentIndex === 0}
+           className={`flex-1 py-4 rounded-2xl font-bold text-xl transition-all ${currentIndex === 0 ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-600 shadow-md hover:shadow-lg hover:-translate-y-1'}`}
+         >
+           上一頁
+         </button>
+         
+         <button 
+           onClick={() => {
+             if (currentIndex < theme.words.length - 1) {
+                 setCurrentIndex(prev => prev + 1);
+             } else {
+                 onBack();
+             }
+           }}
+           className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white py-4 rounded-2xl font-bold text-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
+         >
+           {currentIndex === theme.words.length - 1 ? '完成主題' : '下一個'}
+         </button>
+      </div>
+    </div>
+  );
+}
 
-          const playQuestionAudio = (text) => {
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = 'zh-HK';
-            window.speechSynthesis.speak(u);
-          };
+// --- 5. 測試區 ---
+function QuizZone({ grade, onExit }) {
+  const [quizState, setQuizState] = useState('intro'); // intro, playing, result
+  const [currentQ, setCurrentQ] = useState(0);
+  const [score, setScore] = useState(0);
+  const [questions, setQuestions] = useState([]);
+  const [showFeedback, setShowFeedback] = useState(null); // 'correct', 'wrong'
 
-          if (quizState === 'intro') {
-            return (
-              <div className="flex flex-col items-center justify-center h-full animate-fadeIn pt-10 text-center">
-                <div className="bg-rose-100 p-8 rounded-full mb-6 animate-bounce">
-                    <Award className="text-rose-500 w-24 h-24" />
-                </div>
-                <h2 className="text-4xl font-bold text-slate-800 mb-4">準備好接受挑戰了嗎？</h2>
-                <p className="text-xl text-slate-500 mb-10">我們將進行 5 題小測驗！</p>
-                <button 
-                  onClick={() => setQuizState('playing')}
-                  className="bg-rose-500 hover:bg-rose-600 text-white text-2xl font-bold py-4 px-12 rounded-full shadow-xl transition-transform hover:scale-105"
-                >
-                  開始測試
-                </button>
-              </div>
-            );
-          }
+  // 產生題目
+  useEffect(() => {
+    if (quizState === 'intro') {
+      const allWords = curriculumData[grade].themes.flatMap(t => t.words);
+      // 確保題目足夠，若詞彙少於5個則取全部
+      const questionCount = Math.min(5, allWords.length);
+      const shuffled = [...allWords].sort(() => 0.5 - Math.random());
+      
+      const selected = shuffled.slice(0, questionCount).map(word => {
+        const distractors = allWords.filter(w => w.char !== word.char)
+                                    .sort(() => 0.5 - Math.random())
+                                    .slice(0, 2);
+        const options = [word, ...distractors].sort(() => 0.5 - Math.random());
+        // 隨機題型: 
+        // 'text-to-image': 顯示文字，選圖片 (Emoji)
+        // 'audio-to-image': 播放聲音，選圖片 (Emoji)
+        const type = Math.random() > 0.5 ? 'text-to-image' : 'audio-to-image';
+        return { answer: word, options, type };
+      });
+      setQuestions(selected);
+    }
+  }, [grade, quizState]);
 
-          if (quizState === 'result') {
-            const percentage = (score / questions.length) * 100;
-            return (
-              <div className="flex flex-col items-center justify-center animate-fadeIn pt-10">
-                <h2 className="text-3xl font-bold text-slate-700 mb-8">測試完成！</h2>
-                <div className="bg-white p-10 rounded-3xl shadow-xl text-center border-4 border-yellow-200">
-                   <div className="text-6xl mb-4">{percentage === 100 ? '🏆' : percentage >= 60 ? '👍' : '💪'}</div>
-                   <div className="text-5xl font-bold text-slate-800 mb-2">{score} / {questions.length}</div>
-                   <p className="text-slate-500 text-lg">
-                     {percentage === 100 ? "太厲害了！全對！" : percentage >= 60 ? "做得很好！" : "繼續加油！"}
-                   </p>
-                </div>
-                <div className="flex gap-4 mt-10">
-                    <button onClick={onExit} className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 px-8 rounded-full">
-                        返回目錄
-                    </button>
-                    <button onClick={() => { setQuizState('intro'); setCurrentQ(0); setScore(0); }} className="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-3 px-8 rounded-full">
-                        再玩一次
-                    </button>
-                </div>
-              </div>
-            );
-          }
+  const handleAnswer = (option) => {
+    if (showFeedback) return;
 
-          const qData = questions[currentQ];
-          return (
-            <div className="max-w-2xl mx-auto animate-fadeIn">
-              <div className="flex justify-between items-center mb-8 px-2">
-                <span className="text-slate-500 font-bold text-lg">第 {currentQ + 1} 題</span>
-                <div className="flex gap-1">
-                    {[...Array(questions.length)].map((_, i) => (
-                        <div key={i} className={`h-2 w-8 rounded-full ${i < currentQ ? 'bg-emerald-400' : i === currentQ ? 'bg-blue-500' : 'bg-slate-200'}`}></div>
-                    ))}
-                </div>
-              </div>
+    const isCorrect = option.char === questions[currentQ].answer.char;
+    if (isCorrect) setScore(s => s + 1);
+    
+    setShowFeedback(isCorrect ? 'correct' : 'wrong');
+    playSound(isCorrect ? 'correct' : 'wrong');
 
-              <div className="bg-white rounded-3xl p-8 shadow-lg border-2 border-slate-100 min-h-[300px] flex flex-col items-center justify-center">
-                
-                {qData.type === 'text-to-image' ? (
-                   <div className="text-center">
-                     <span className="text-slate-400 text-sm font-bold tracking-widest uppercase mb-2 block">看圖選詞</span>
-                     <h2 className="text-9xl mb-8 drop-shadow-md">{qData.answer.emoji}</h2>
-                   </div>
-                ) : (
-                   <div className="text-center">
-                     <span className="text-slate-400 text-sm font-bold tracking-widest uppercase mb-4 block">聆聽選詞</span>
-                     <button 
-                       onClick={() => playQuestionAudio(qData.answer.char)}
-                       className="bg-blue-500 text-white w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg animate-pulse hover:animate-none hover:scale-105 transition-transform"
-                     >
-                        <Volume2 size={40} />
-                     </button>
-                     <p className="text-slate-500">點擊喇叭聆聽題目</p>
-                   </div>
-                )}
+    setTimeout(() => {
+      setShowFeedback(null);
+      if (currentQ < questions.length - 1) {
+        setCurrentQ(q => q + 1);
+      } else {
+        setQuizState('result');
+      }
+    }, 1500);
+  };
 
-                <div className="grid grid-cols-3 gap-4 w-full mt-8">
-                   {qData.options.map((opt, idx) => (
-                     <button
-                       key={idx}
-                       disabled={showFeedback !== null}
-                       onClick={() => handleAnswer(opt)}
-                       className={`aspect-square rounded-2xl flex items-center justify-center shadow-md transition-all transform hover:scale-105 border-4 overflow-hidden relative
-                         ${showFeedback && opt.char === qData.answer.char ? 'border-green-500 ring-4 ring-green-200' : ''}
-                         ${showFeedback === 'wrong' && opt.char !== qData.answer.char ? 'opacity-50' : ''}
-                         ${!showFeedback ? 'hover:border-blue-300 border-transparent' : ''}
-                       `}
-                       style={{ backgroundColor: opt.imgColor }}
-                     >
-                       <span className="text-4xl md:text-5xl font-bold text-white drop-shadow-md">{opt.char}</span>
-                       <div className="absolute top-0 right-0 w-12 h-12 bg-white opacity-20 rounded-bl-full"></div>
-                     </button>
-                   ))}
-                </div>
+  const playSound = (type) => {
+     if ('speechSynthesis' in window) {
+         window.speechSynthesis.cancel();
+         const msg = type === 'correct' ? "答對了" : "答錯了";
+         const u = new SpeechSynthesisUtterance(msg);
+         u.lang = 'zh-HK'; 
+         u.rate = 1.2;
+         window.speechSynthesis.speak(u);
+     }
+  };
 
-                <div className="h-10 mt-6 flex items-center justify-center">
-                   {showFeedback === 'correct' && <span className="text-green-500 font-bold text-xl flex items-center gap-2"><CheckCircle /> 答對了！</span>}
-                   {showFeedback === 'wrong' && <span className="text-red-500 font-bold text-xl flex items-center gap-2"><XCircle /> 答錯了！</span>}
-                </div>
+  const playQuestionAudio = (text) => {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-HK';
+    window.speechSynthesis.speak(u);
+  };
 
-              </div>
-            </div>
-          );
-        }
+  if (quizState === 'intro') {
+    return (
+      <div className="flex flex-col items-center justify-center h-full animate-fadeIn pt-10 text-center">
+        <div className="bg-rose-100 p-10 rounded-full mb-8 animate-bounce">
+            <Award className="text-rose-500 w-32 h-32" />
+        </div>
+        <h2 className="text-5xl font-bold text-slate-800 mb-6">準備好接受挑戰了嗎？</h2>
+        <p className="text-2xl text-slate-500 mb-12">我們將進行 5 題小測驗！</p>
+        <button 
+          onClick={() => setQuizState('playing')}
+          className="bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white text-3xl font-bold py-6 px-16 rounded-full shadow-2xl transition-transform hover:scale-105"
+        >
+          開始測試
+        </button>
+      </div>
+    );
+  }
 
-        const root = createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-</body>
-</html>
+  if (quizState === 'result') {
+    const percentage = (score / questions.length) * 100;
+    return (
+      <div className="flex flex-col items-center justify-center animate-fadeIn pt-10">
+        <h2 className="text-4xl font-bold text-slate-700 mb-10">測試完成！</h2>
+        <div className="bg-white p-12 rounded-[3rem] shadow-2xl text-center border-8 border-yellow-200">
+           <div className="text-8xl mb-6 animate-pulse-custom">{percentage === 100 ? '🏆' : percentage >= 60 ? '👍' : '💪'}</div>
+           <div className="text-6xl font-bold text-slate-800 mb-4">{score} / {questions.length}</div>
+           <p className="text-slate-500 text-2xl font-medium">
+             {percentage === 100 ? "太厲害了！全對！" : percentage >= 60 ? "做得很好！" : "繼續加油！"}
+           </p>
+        </div>
+        <div className="flex gap-6 mt-12">
+            <button onClick={onExit} className="bg-white hover:bg-slate-50 text-slate-700 font-bold py-4 px-10 rounded-full text-xl shadow-lg border border-slate-200">
+                返回目錄
+            </button>
+            <button onClick={() => { setQuizState('intro'); setCurrentQ(0); setScore(0); }} className="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-4 px-10 rounded-full text-xl shadow-lg">
+                再玩一次
+            </button>
+        </div>
+      </div>
+    );
+  }
+
+  const qData = questions[currentQ];
+  return (
+    <div className="max-w-2xl mx-auto animate-fadeIn">
+      <div className="flex justify-between items-center mb-8 px-4">
+        <span className="text-slate-500 font-bold text-xl">第 {currentQ + 1} 題</span>
+        <div className="flex gap-2">
+            {[...Array(questions.length)].map((_, i) => (
+                <div key={i} className={`h-3 w-10 rounded-full transition-colors duration-300 ${i < currentQ ? 'bg-emerald-400' : i === currentQ ? 'bg-blue-500' : 'bg-slate-200'}`}></div>
+            ))}
+        </div>
+      </div>
+
+      <div className="bg-white/90 backdrop-blur rounded-[3rem] p-10 shadow-2xl border-4 border-white min-h-[400px] flex flex-col items-center justify-center">
+        
+        {qData.type === 'text-to-image' ? (
+           <div className="text-center w-full">
+             <span className="text-slate-400 text-base font-bold tracking-widest uppercase mb-4 block bg-slate-100 py-1 px-4 rounded-full w-max mx-auto">看字選圖</span>
+             <h2 className="text-7xl md:text-8xl font-bold text-slate-800 mb-10 drop-shadow-sm">{qData.answer.char}</h2>
+           </div>
+        ) : (
+           <div className="text-center w-full">
+             <span className="text-slate-400 text-base font-bold tracking-widest uppercase mb-4 block bg-slate-100 py-1 px-4 rounded-full w-max mx-auto">聆聽選圖</span>
+             <button 
+               onClick={() => playQuestionAudio(qData.answer.char)}
+               className="bg-blue-500 hover:bg-blue-600 text-white w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-10 shadow-xl animate-pulse hover:animate-none hover:scale-105 transition-transform"
+             >
+                <Volume2 size={64} />
+             </button>
+             <p className="text-slate-500 text-lg mb-4">點擊喇叭聆聽題目</p>
+           </div>
+        )}
+
+        {/* 測試區選項 - 顯示 Emoji (作為圖片) */}
+        <div className="grid grid-cols-3 gap-6 w-full mt-4">
+           {qData.options.map((opt, idx) => (
+             <button
+               key={idx}
+               disabled={showFeedback !== null}
+               onClick={() => handleAnswer(opt)}
+               className={`aspect-square rounded-[2rem] flex items-center justify-center shadow-lg transition-all transform hover:scale-105 border-4 overflow-hidden relative bg-slate-50 hover:bg-white
+                 ${showFeedback && opt.char === qData.answer.char ? 'border-green-500 ring-4 ring-green-200 bg-green-50' : ''}
+                 ${showFeedback === 'wrong' && opt.char !== qData.answer.char ? 'opacity-50 grayscale' : ''}
+                 ${!showFeedback ? 'hover:border-blue-300 border-transparent' : ''}
+               `}
+             >
+               <span className="text-6xl md:text-7xl drop-shadow-md select-none">{opt.emoji}</span>
+             </button>
+           ))}
+        </div>
+
+        <div className="h-12 mt-8 flex items-center justify-center">
+           {showFeedback === 'correct' && <span className="text-green-500 font-bold text-3xl flex items-center gap-2 animate-bounce"><CheckCircle size={32} /> 答對了！</span>}
+           {showFeedback === 'wrong' && <span className="text-red-500 font-bold text-3xl flex items-center gap-2 animate-shake"><XCircle size={32} /> 答錯了！</span>}
+        </div>
+
+      </div>
+    </div>
+  );
+}
