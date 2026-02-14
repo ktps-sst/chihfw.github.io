@@ -4,14 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>初小學生高頻詞語表</title>
-    
-    <!-- 1. 引入 Tailwind CSS (用於美觀樣式) -->
+    <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- 2. 引入 Babel (讓瀏覽器看得懂 React 代碼) -->
+    <!-- 引入 Babel 用於解析 JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- 3. 設定 Import Map (從網路載入 React 和圖示庫) -->
+    <!-- 設定 Import Map 以便直接引用 React 和圖標庫 -->
     <script type="importmap">
     {
       "imports": {
@@ -22,8 +21,8 @@
     }
     </script>
 
-    <!-- 4. 自定義 CSS 動畫 -->
     <style>
+        /* 自定義動畫樣式 */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -53,35 +52,24 @@
         .animate-shake {
             animation: shake 0.5s ease-in-out;
         }
-        /* 避免手機點擊時的藍色閃爍 */
-        * {
-            -webkit-tap-highlight-color: transparent;
-        }
-        /* 隱藏滾動條但保持功能 */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
-        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased selection:bg-yellow-200 selection:text-yellow-900">
-    <!-- React 應用程式將會顯示在這裡 -->
     <div id="root"></div>
 
-    <!-- 5. 這裡開始是主要的程式邏輯 -->
+    <!-- React 應用程式邏輯 -->
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect, useRef } from 'react';
         import { createRoot } from 'react-dom/client';
         import { 
           BookOpen, 
           Gamepad2, 
+          Mic, 
           Volume2, 
           ArrowLeft, 
           Star, 
           Award, 
+          RefreshCcw, 
           Home,
           CheckCircle,
           XCircle,
@@ -90,15 +78,19 @@
           User,
           Utensils,
           Trees,
+          Car,
+          Shirt,
+          School,
+          Building,
           Ticket,
           Zap,
           Box,
+          Heart,
+          AlertCircle,
           Pencil,
           GraduationCap,
           Palette,
-          Music,
-          School,
-          Building
+          Music
         } from 'lucide-react';
 
         // --- 課程資料庫 (完整整合悅讀‧悅寫意詞彙) ---
@@ -604,466 +596,466 @@
         ]
       }
     ]
+  }
+};
+
+// --- 組件：主應用 ---
+function App() {
+  const [view, setView] = useState('home'); 
+  const [grade, setGrade] = useState(null);
+  const [theme, setTheme] = useState(null);
+  
+  const goHome = () => {
+    setView('home');
+    setGrade(null);
+    setTheme(null);
   };
 
-        // --- 組件：主應用 ---
-        function App() {
-          const [view, setView] = useState('home'); 
-          const [grade, setGrade] = useState(null);
-          const [theme, setTheme] = useState(null);
+  const selectGrade = (g) => {
+    setGrade(g);
+    setView('mode');
+  };
+
+  const selectMode = (mode) => {
+    if (mode === 'learn') {
+      setView('learn_themes');
+    } else {
+      setView('quiz');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-blue-50 font-sans text-slate-800 relative">
+      <BackgroundDecorations />
+      
+      {/* 頂部導航欄 */}
+      <header className="bg-white/80 backdrop-blur-md shadow-sm p-4 flex justify-between items-center sticky top-0 z-10 border-b border-white/50">
+        <div className="flex items-center gap-2 cursor-pointer" onClick={goHome}>
+          <div className="bg-gradient-to-tr from-yellow-400 to-orange-400 p-2 rounded-xl shadow-lg transform hover:scale-105 transition-transform">
+            <BookOpen className="text-white" size={24} />
+          </div>
+          <h1 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-700 to-slate-500 tracking-wide ml-2">
+            初小學生高頻詞語表
+          </h1>
+        </div>
+        <div className="flex gap-2">
+           {view !== 'home' && (
+             <button onClick={() => setView(view === 'learn_card' ? 'learn_themes' : (view === 'learn_themes' || view === 'quiz' ? 'mode' : 'home'))} 
+                     className="bg-white hover:bg-slate-50 text-slate-600 px-4 py-2 rounded-full font-bold flex items-center gap-2 transition-all shadow-sm hover:shadow-md border border-slate-200">
+               <ArrowLeft size={18} /> 返回
+             </button>
+           )}
+        </div>
+      </header>
+
+      {/* 主要內容區 */}
+      <main className="container mx-auto p-4 md:p-6 max-w-4xl relative z-10">
+        {view === 'home' && <GradeSelection onSelect={selectGrade} />}
+        {view === 'mode' && <ModeSelection grade={grade} onSelect={selectMode} />}
+        {view === 'learn_themes' && <ThemeSelection grade={grade} onSelect={(t) => { setTheme(t); setView('learn_card'); }} />}
+        {view === 'learn_card' && <LearningZone theme={theme} onBack={() => setView('learn_themes')} />}
+        {view === 'quiz' && <QuizZone grade={grade} onExit={() => setView('mode')} />}
+      </main>
+    </div>
+  );
+}
+
+// --- 背景裝飾組件 ---
+const BackgroundDecorations = () => {
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+      {/* 隨機分佈的裝飾圖示 */}
+      <Pencil className="absolute top-10 left-10 text-yellow-200/50 w-24 h-24 -rotate-12 animate-pulse-custom" />
+      <BookOpen className="absolute top-1/4 right-20 text-blue-200/50 w-32 h-32 rotate-12" />
+      <Star className="absolute bottom-20 left-1/4 text-purple-200/50 w-16 h-16 animate-bounce-custom" />
+      <GraduationCap className="absolute bottom-10 right-10 text-emerald-200/50 w-28 h-28 -rotate-6" />
+      <Palette className="absolute top-1/3 left-20 text-rose-200/50 w-20 h-20 rotate-45" />
+      <Music className="absolute bottom-1/3 right-1/4 text-orange-200/50 w-16 h-16 -rotate-12" />
+      
+      {/* 圓形裝飾 */}
+      <div className="absolute top-20 right-1/3 w-40 h-40 bg-pink-100/30 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-40 left-10 w-60 h-60 bg-blue-100/30 rounded-full blur-3xl"></div>
+    </div>
+  );
+};
+
+// --- 1. 年級選擇區 ---
+function GradeSelection({ onSelect }) {
+  return (
+    <div className="flex flex-col items-center animate-fadeIn">
+      <h2 className="text-4xl font-bold text-center mb-12 text-slate-700 drop-shadow-sm">請選擇年級</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full px-4">
+        {[1, 2, 3].map((g) => (
+          <button
+            key={g}
+            onClick={() => onSelect(g)}
+            className="group relative bg-white/90 backdrop-blur border-b-8 border-r-8 border-slate-200 hover:border-yellow-400 active:border-0 active:translate-y-2 active:translate-x-2 rounded-[2rem] p-8 transition-all duration-200 flex flex-col items-center justify-center gap-6 border-2 border-slate-100 shadow-xl hover:shadow-2xl"
+          >
+            <div className={`w-24 h-24 rounded-full flex items-center justify-center text-4xl font-bold text-white shadow-lg transform group-hover:scale-110 transition-transform duration-300
+              ${g === 1 ? 'bg-gradient-to-br from-emerald-400 to-teal-500' : g === 2 ? 'bg-gradient-to-br from-blue-400 to-indigo-500' : 'bg-gradient-to-br from-purple-400 to-fuchsia-500'}`}>
+              P{g}
+            </div>
+            <span className="text-3xl font-bold text-slate-600 group-hover:text-slate-800">
+              {g === 1 ? '一年級' : g === 2 ? '二年級' : '三年級'}
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// --- 2. 模式選擇區 ---
+function ModeSelection({ grade, onSelect }) {
+  const gradeInfo = curriculumData[grade];
+  
+  return (
+    <div className="flex flex-col items-center animate-fadeIn">
+      <div className={`${gradeInfo.color.replace('bg-', 'bg-gradient-to-r from-').replace('500', '400 to-') + gradeInfo.color.replace('bg-', '')} text-white px-8 py-3 rounded-full text-2xl font-bold mb-8 shadow-lg transform -rotate-2`}>
+        {gradeInfo.title}
+      </div>
+      <h3 className="text-3xl font-bold text-slate-800 mb-12">你想做什麼？</h3>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-2xl px-4">
+        <button 
+          onClick={() => onSelect('learn')}
+          className="bg-white/90 backdrop-blur border-4 border-emerald-100 hover:border-emerald-400 rounded-[2.5rem] p-10 flex flex-col items-center gap-6 transition-all hover:shadow-2xl hover:-translate-y-1 group"
+        >
+          <div className="bg-emerald-100 p-8 rounded-full group-hover:bg-emerald-200 transition-colors shadow-inner">
+            <BookOpen size={64} className="text-emerald-600" />
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-slate-800 mb-2">學習區</div>
+            <div className="text-slate-500 text-xl font-medium">Learning Zone</div>
+          </div>
+        </button>
+
+        <button 
+          onClick={() => onSelect('quiz')}
+          className="bg-white/90 backdrop-blur border-4 border-rose-100 hover:border-rose-400 rounded-[2.5rem] p-10 flex flex-col items-center gap-6 transition-all hover:shadow-2xl hover:-translate-y-1 group"
+        >
+          <div className="bg-rose-100 p-8 rounded-full group-hover:bg-rose-200 transition-colors shadow-inner">
+            <Gamepad2 size={64} className="text-rose-600" />
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-slate-800 mb-2">測試區</div>
+            <div className="text-slate-500 text-xl font-medium">Quiz Zone</div>
+          </div>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// --- 3. 主題選擇區 ---
+function ThemeSelection({ grade, onSelect }) {
+  const themes = curriculumData[grade].themes;
+  const gradeInfo = curriculumData[grade];
+
+  return (
+    <div className="animate-fadeIn">
+      <div className="flex flex-col items-center mb-10">
+        <div className={`bg-gradient-to-r from-gray-700 to-gray-600 text-white px-6 py-2 rounded-full text-base font-bold mb-4 shadow-md`}>
+            {gradeInfo.title}
+        </div>
+        <h2 className="text-4xl font-bold text-center text-slate-800">選擇學習主題</h2>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-2">
+        {themes.map((theme) => (
+          <button
+            key={theme.id}
+            onClick={() => onSelect(theme)}
+            className={`relative overflow-hidden rounded-[2rem] p-6 transition-all hover:scale-105 hover:shadow-xl border-b-4 text-left ${theme.color} bg-opacity-60 backdrop-blur-sm border-opacity-60 flex flex-col h-full group`}
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div className="bg-white p-4 rounded-2xl shadow-sm text-slate-700 group-hover:scale-110 transition-transform">
+                {theme.icon}
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold text-slate-800 mb-2">{theme.name}</h3>
+            <p className="text-slate-600 font-medium mb-4 italic">{theme.en}</p>
+            <p className="text-sm text-slate-600 line-clamp-2 mt-auto bg-white/40 p-2 rounded-lg">{theme.desc}</p>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// --- 4. 學習區 (核心功能) ---
+function LearningZone({ theme, onBack }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  const word = theme.words[currentIndex];
+
+  // 語音合成 (TTS)
+  const playAudio = (text) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // 停止之前的語音
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'zh-HK'; // 設定為廣東話
+      utterance.rate = 0.8; // 稍微放慢語速適合兒童
+      window.speechSynthesis.speak(utterance);
+    } else {
+      alert("您的瀏覽器不支援語音播放");
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center animate-fadeIn max-w-2xl mx-auto">
+      {/* 頂部標題與進度 */}
+      <div className="w-full mb-8 px-4">
+         <h3 className="text-2xl font-bold text-slate-600 text-center mb-4">{theme.name}</h3>
+         <div className="w-full bg-white rounded-full h-4 p-1 shadow-inner">
+            <div className="bg-gradient-to-r from-emerald-400 to-teal-500 h-2 rounded-full transition-all duration-300 shadow-sm" 
+                 style={{ width: `${((currentIndex + 1) / theme.words.length) * 100}%` }}></div>
+         </div>
+         <p className="text-right text-base font-bold text-slate-400 mt-2">{currentIndex + 1} / {theme.words.length}</p>
+      </div>
+
+      {/* 學習卡片 */}
+      <div className="bg-white/90 backdrop-blur w-full rounded-[3rem] shadow-2xl p-8 md:p-12 relative border-4 border-white">
+        
+        {/* 圖片區塊 - 維持 Emoji 顯示 */}
+        <div 
+            className="w-full h-48 md:h-64 rounded-[2rem] mb-8 shadow-inner flex items-center justify-center relative group bg-slate-50 border-2 border-slate-100"
+        >
+           <div className="text-9xl md:text-[10rem] drop-shadow-xl transform transition-transform duration-500 group-hover:scale-110 filter hover:brightness-110 cursor-default select-none">
+               {word.emoji}
+           </div>
+        </div>
+
+        {/* 文字資訊 */}
+        <div className="text-center space-y-4">
+          <h1 className="text-6xl md:text-8xl font-bold text-slate-800 tracking-wider font-serif drop-shadow-sm">
+            {word.char}
+          </h1>
           
-          const goHome = () => {
-            setView('home');
-            setGrade(null);
-            setTheme(null);
-          };
+          <div className="flex items-center justify-center gap-4 py-2">
+            <span className="text-2xl text-slate-500 font-medium font-mono bg-slate-100 px-6 py-2 rounded-2xl">
+              {word.jyut}
+            </span>
+            <button 
+              onClick={() => playAudio(word.char)}
+              className="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white p-3 rounded-full transition-all shadow-lg hover:shadow-blue-200"
+              title="聆聽發音"
+            >
+              <Volume2 size={24} />
+            </button>
+          </div>
 
-          const selectGrade = (g) => {
-            setGrade(g);
-            setView('mode');
-          };
+          <p className="text-3xl text-slate-400 font-serif italic">{word.en}</p>
 
-          const selectMode = (mode) => {
-            if (mode === 'learn') {
-              setView('learn_themes');
-            } else {
-              setView('quiz');
-            }
-          };
+          {/* 例句區 */}
+          <div className="mt-8 bg-yellow-50 p-6 rounded-3xl border-2 border-yellow-200 text-slate-700 relative group cursor-pointer hover:bg-yellow-100 transition-colors shadow-sm" onClick={() => playAudio(word.sentence)}>
+              <Volume2 size={20} className="absolute top-4 right-4 text-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <p className="text-xl font-medium leading-relaxed">「{word.sentence}」</p>
+          </div>
+        </div>
+      </div>
 
-          return (
-            <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-blue-50 font-sans text-slate-800 relative">
-              <BackgroundDecorations />
-              
-              {/* 頂部導航欄 */}
-              <header className="bg-white/80 backdrop-blur-md shadow-sm p-4 flex justify-between items-center sticky top-0 z-10 border-b border-white/50">
-                <div className="flex items-center gap-2 cursor-pointer" onClick={goHome}>
-                  <div className="bg-gradient-to-tr from-yellow-400 to-orange-400 p-2 rounded-xl shadow-lg transform hover:scale-105 transition-transform">
-                    <BookOpen className="text-white" size={24} />
-                  </div>
-                  <h1 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-700 to-slate-500 tracking-wide ml-2">
-                    初小學生高頻詞語表
-                  </h1>
-                </div>
-                <div className="flex gap-2">
-                   {view !== 'home' && (
-                     <button onClick={() => setView(view === 'learn_card' ? 'learn_themes' : (view === 'learn_themes' || view === 'quiz' ? 'mode' : 'home'))} 
-                             className="bg-white hover:bg-slate-50 text-slate-600 px-4 py-2 rounded-full font-bold flex items-center gap-2 transition-all shadow-sm hover:shadow-md border border-slate-200">
-                       <ArrowLeft size={18} /> 返回
-                     </button>
-                   )}
-                </div>
-              </header>
-
-              {/* 主要內容區 */}
-              <main className="container mx-auto p-4 md:p-6 max-w-4xl relative z-10">
-                {view === 'home' && <GradeSelection onSelect={selectGrade} />}
-                {view === 'mode' && <ModeSelection grade={grade} onSelect={selectMode} />}
-                {view === 'learn_themes' && <ThemeSelection grade={grade} onSelect={(t) => { setTheme(t); setView('learn_card'); }} />}
-                {view === 'learn_card' && <LearningZone theme={theme} onBack={() => setView('learn_themes')} />}
-                {view === 'quiz' && <QuizZone grade={grade} onExit={() => setView('mode')} />}
-              </main>
-            </div>
-          );
-        }
-
-        // --- 背景裝飾組件 ---
-        const BackgroundDecorations = () => {
-          return (
-            <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-              {/* 隨機分佈的裝飾圖示 */}
-              <Pencil className="absolute top-10 left-10 text-yellow-200/50 w-24 h-24 -rotate-12 animate-pulse-custom" />
-              <BookOpen className="absolute top-1/4 right-20 text-blue-200/50 w-32 h-32 rotate-12" />
-              <Star className="absolute bottom-20 left-1/4 text-purple-200/50 w-16 h-16 animate-bounce-custom" />
-              <GraduationCap className="absolute bottom-10 right-10 text-emerald-200/50 w-28 h-28 -rotate-6" />
-              <Palette className="absolute top-1/3 left-20 text-rose-200/50 w-20 h-20 rotate-45" />
-              <Music className="absolute bottom-1/3 right-1/4 text-orange-200/50 w-16 h-16 -rotate-12" />
-              
-              {/* 圓形裝飾 */}
-              <div className="absolute top-20 right-1/3 w-40 h-40 bg-pink-100/30 rounded-full blur-3xl"></div>
-              <div className="absolute bottom-40 left-10 w-60 h-60 bg-blue-100/30 rounded-full blur-3xl"></div>
-            </div>
-          );
-        };
-
-        // --- 1. 年級選擇區 ---
-        function GradeSelection({ onSelect }) {
-          return (
-            <div className="flex flex-col items-center animate-fadeIn">
-              <h2 className="text-4xl font-bold text-center mb-12 text-slate-700 drop-shadow-sm">請選擇年級</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full px-4">
-                {[1, 2, 3].map((g) => (
-                  <button
-                    key={g}
-                    onClick={() => onSelect(g)}
-                    className="group relative bg-white/90 backdrop-blur border-b-8 border-r-8 border-slate-200 hover:border-yellow-400 active:border-0 active:translate-y-2 active:translate-x-2 rounded-[2rem] p-8 transition-all duration-200 flex flex-col items-center justify-center gap-6 border-2 border-slate-100 shadow-xl hover:shadow-2xl"
-                  >
-                    <div className={`w-24 h-24 rounded-full flex items-center justify-center text-4xl font-bold text-white shadow-lg transform group-hover:scale-110 transition-transform duration-300
-                      ${g === 1 ? 'bg-gradient-to-br from-emerald-400 to-teal-500' : g === 2 ? 'bg-gradient-to-br from-blue-400 to-indigo-500' : 'bg-gradient-to-br from-purple-400 to-fuchsia-500'}`}>
-                      P{g}
-                    </div>
-                    <span className="text-3xl font-bold text-slate-600 group-hover:text-slate-800">
-                      {g === 1 ? '一年級' : g === 2 ? '二年級' : '三年級'}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          );
-        }
-
-        // --- 2. 模式選擇區 ---
-        function ModeSelection({ grade, onSelect }) {
-          const gradeInfo = curriculumData[grade];
-          
-          return (
-            <div className="flex flex-col items-center animate-fadeIn">
-              <div className={`${gradeInfo.color.replace('bg-', 'bg-gradient-to-r from-').replace('500', '400 to-') + gradeInfo.color.replace('bg-', '')} text-white px-8 py-3 rounded-full text-2xl font-bold mb-8 shadow-lg transform -rotate-2`}>
-                {gradeInfo.title}
-              </div>
-              <h3 className="text-3xl font-bold text-slate-800 mb-12">你想做什麼？</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-2xl px-4">
-                <button 
-                  onClick={() => onSelect('learn')}
-                  className="bg-white/90 backdrop-blur border-4 border-emerald-100 hover:border-emerald-400 rounded-[2.5rem] p-10 flex flex-col items-center gap-6 transition-all hover:shadow-2xl hover:-translate-y-1 group"
-                >
-                  <div className="bg-emerald-100 p-8 rounded-full group-hover:bg-emerald-200 transition-colors shadow-inner">
-                    <BookOpen size={64} className="text-emerald-600" />
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-slate-800 mb-2">學習區</div>
-                    <div className="text-slate-500 text-xl font-medium">Learning Zone</div>
-                  </div>
-                </button>
-
-                <button 
-                  onClick={() => onSelect('quiz')}
-                  className="bg-white/90 backdrop-blur border-4 border-rose-100 hover:border-rose-400 rounded-[2.5rem] p-10 flex flex-col items-center gap-6 transition-all hover:shadow-2xl hover:-translate-y-1 group"
-                >
-                  <div className="bg-rose-100 p-8 rounded-full group-hover:bg-rose-200 transition-colors shadow-inner">
-                    <Gamepad2 size={64} className="text-rose-600" />
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-slate-800 mb-2">測試區</div>
-                    <div className="text-slate-500 text-xl font-medium">Quiz Zone</div>
-                  </div>
-                </button>
-              </div>
-            </div>
-          );
-        }
-
-        // --- 3. 主題選擇區 ---
-        function ThemeSelection({ grade, onSelect }) {
-          const themes = curriculumData[grade].themes;
-          const gradeInfo = curriculumData[grade];
-
-          return (
-            <div className="animate-fadeIn">
-              <div className="flex flex-col items-center mb-10">
-                <div className={`bg-gradient-to-r from-gray-700 to-gray-600 text-white px-6 py-2 rounded-full text-base font-bold mb-4 shadow-md`}>
-                    {gradeInfo.title}
-                </div>
-                <h2 className="text-4xl font-bold text-center text-slate-800">選擇學習主題</h2>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-2">
-                {themes.map((theme) => (
-                  <button
-                    key={theme.id}
-                    onClick={() => onSelect(theme)}
-                    className={`relative overflow-hidden rounded-[2rem] p-6 transition-all hover:scale-105 hover:shadow-xl border-b-4 text-left ${theme.color} bg-opacity-60 backdrop-blur-sm border-opacity-60 flex flex-col h-full group`}
-                  >
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="bg-white p-4 rounded-2xl shadow-sm text-slate-700 group-hover:scale-110 transition-transform">
-                        {theme.icon}
-                      </div>
-                    </div>
-                    <h3 className="text-2xl font-bold text-slate-800 mb-2">{theme.name}</h3>
-                    <p className="text-slate-600 font-medium mb-4 italic">{theme.en}</p>
-                    <p className="text-sm text-slate-600 line-clamp-2 mt-auto bg-white/40 p-2 rounded-lg">{theme.desc}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          );
-        }
-
-        // --- 4. 學習區 (核心功能) ---
-        function LearningZone({ theme, onBack }) {
-          const [currentIndex, setCurrentIndex] = useState(0);
-          
-          const word = theme.words[currentIndex];
-
-          // 語音合成 (TTS)
-          const playAudio = (text) => {
-            if ('speechSynthesis' in window) {
-              window.speechSynthesis.cancel(); // 停止之前的語音
-              const utterance = new SpeechSynthesisUtterance(text);
-              utterance.lang = 'zh-HK'; // 設定為廣東話
-              utterance.rate = 0.8; // 稍微放慢語速適合兒童
-              window.speechSynthesis.speak(utterance);
-            } else {
-              alert("您的瀏覽器不支援語音播放");
-            }
-          };
-
-          return (
-            <div className="flex flex-col items-center animate-fadeIn max-w-2xl mx-auto">
-              {/* 頂部標題與進度 */}
-              <div className="w-full mb-8 px-4">
-                 <h3 className="text-2xl font-bold text-slate-600 text-center mb-4">{theme.name}</h3>
-                 <div className="w-full bg-white rounded-full h-4 p-1 shadow-inner">
-                    <div className="bg-gradient-to-r from-emerald-400 to-teal-500 h-2 rounded-full transition-all duration-300 shadow-sm" 
-                         style={{ width: `${((currentIndex + 1) / theme.words.length) * 100}%` }}></div>
-                 </div>
-                 <p className="text-right text-base font-bold text-slate-400 mt-2">{currentIndex + 1} / {theme.words.length}</p>
-              </div>
-
-              {/* 學習卡片 */}
-              <div className="bg-white/90 backdrop-blur w-full rounded-[3rem] shadow-2xl p-8 md:p-12 relative border-4 border-white">
-                
-                {/* 圖片區塊 - 維持 Emoji 顯示 */}
-                <div 
-                    className="w-full h-48 md:h-64 rounded-[2rem] mb-8 shadow-inner flex items-center justify-center relative group bg-slate-50 border-2 border-slate-100"
-                >
-                   <div className="text-9xl md:text-[10rem] drop-shadow-xl transform transition-transform duration-500 group-hover:scale-110 filter hover:brightness-110 cursor-default select-none">
-                       {word.emoji}
-                   </div>
-                </div>
-
-                {/* 文字資訊 */}
-                <div className="text-center space-y-4">
-                  <h1 className="text-6xl md:text-8xl font-bold text-slate-800 tracking-wider font-serif drop-shadow-sm">
-                    {word.char}
-                  </h1>
-                  
-                  <div className="flex items-center justify-center gap-4 py-2">
-                    <span className="text-2xl text-slate-500 font-medium font-mono bg-slate-100 px-6 py-2 rounded-2xl">
-                      {word.jyut}
-                    </span>
-                    <button 
-                      onClick={() => playAudio(word.char)}
-                      className="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white p-3 rounded-full transition-all shadow-lg hover:shadow-blue-200"
-                      title="聆聽發音"
-                    >
-                      <Volume2 size={24} />
-                    </button>
-                  </div>
-
-                  <p className="text-3xl text-slate-400 font-serif italic">{word.en}</p>
-
-                  {/* 例句區 */}
-                  <div className="mt-8 bg-yellow-50 p-6 rounded-3xl border-2 border-yellow-200 text-slate-700 relative group cursor-pointer hover:bg-yellow-100 transition-colors shadow-sm" onClick={() => playAudio(word.sentence)}>
-                      <Volume2 size={20} className="absolute top-4 right-4 text-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <p className="text-xl font-medium leading-relaxed">「{word.sentence}」</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 底部導航 */}
-              <div className="flex gap-6 mt-8 w-full justify-between px-2">
-                 <button 
-                   onClick={() => {
-                     if (currentIndex > 0) {
-                         setCurrentIndex(prev => prev - 1);
-                     }
-                   }}
-                   disabled={currentIndex === 0}
-                   className={`flex-1 py-4 rounded-2xl font-bold text-xl transition-all ${currentIndex === 0 ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-600 shadow-md hover:shadow-lg hover:-translate-y-1'}`}
-                 >
-                   上一頁
-                 </button>
-                 
-                 <button 
-                   onClick={() => {
-                     if (currentIndex < theme.words.length - 1) {
-                         setCurrentIndex(prev => prev + 1);
-                     } else {
-                         onBack();
-                     }
-                   }}
-                   className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white py-4 rounded-2xl font-bold text-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
-                 >
-                   {currentIndex === theme.words.length - 1 ? '完成主題' : '下一個'}
-                 </button>
-              </div>
-            </div>
-          );
-        }
-
-        // --- 5. 測試區 ---
-        function QuizZone({ grade, onExit }) {
-          const [quizState, setQuizState] = useState('intro'); // intro, playing, result
-          const [currentQ, setCurrentQ] = useState(0);
-          const [score, setScore] = useState(0);
-          const [questions, setQuestions] = useState([]);
-          const [showFeedback, setShowFeedback] = useState(null); // 'correct', 'wrong'
-
-          // 產生題目
-          useEffect(() => {
-            if (quizState === 'intro') {
-              const allWords = curriculumData[grade].themes.flatMap(t => t.words);
-              // 確保題目足夠，若詞彙少於5個則取全部
-              const questionCount = Math.min(5, allWords.length);
-              const shuffled = [...allWords].sort(() => 0.5 - Math.random());
-              
-              const selected = shuffled.slice(0, questionCount).map(word => {
-                const distractors = allWords.filter(w => w.char !== word.char)
-                                            .sort(() => 0.5 - Math.random())
-                                            .slice(0, 2);
-                const options = [word, ...distractors].sort(() => 0.5 - Math.random());
-                // 隨機題型: 
-                // 'text-to-image': 顯示文字，選圖片 (Emoji)
-                // 'audio-to-image': 播放聲音，選圖片 (Emoji)
-                const type = Math.random() > 0.5 ? 'text-to-image' : 'audio-to-image';
-                return { answer: word, options, type };
-              });
-              setQuestions(selected);
-            }
-          }, [grade, quizState]);
-
-          const handleAnswer = (option) => {
-            if (showFeedback) return;
-
-            const isCorrect = option.char === questions[currentQ].answer.char;
-            if (isCorrect) setScore(s => s + 1);
-            
-            setShowFeedback(isCorrect ? 'correct' : 'wrong');
-            playSound(isCorrect ? 'correct' : 'wrong');
-
-            setTimeout(() => {
-              setShowFeedback(null);
-              if (currentQ < questions.length - 1) {
-                setCurrentQ(q => q + 1);
-              } else {
-                setQuizState('result');
-              }
-            }, 1500);
-          };
-
-          const playSound = (type) => {
-             if ('speechSynthesis' in window) {
-                 window.speechSynthesis.cancel();
-                 const msg = type === 'correct' ? "答對了" : "答錯了";
-                 const u = new SpeechSynthesisUtterance(msg);
-                 u.lang = 'zh-HK'; 
-                 u.rate = 1.2;
-                 window.speechSynthesis.speak(u);
+      {/* 底部導航 */}
+      <div className="flex gap-6 mt-8 w-full justify-between px-2">
+         <button 
+           onClick={() => {
+             if (currentIndex > 0) {
+                 setCurrentIndex(prev => prev - 1);
              }
-          };
+           }}
+           disabled={currentIndex === 0}
+           className={`flex-1 py-4 rounded-2xl font-bold text-xl transition-all ${currentIndex === 0 ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-600 shadow-md hover:shadow-lg hover:-translate-y-1'}`}
+         >
+           上一頁
+         </button>
+         
+         <button 
+           onClick={() => {
+             if (currentIndex < theme.words.length - 1) {
+                 setCurrentIndex(prev => prev + 1);
+             } else {
+                 onBack();
+             }
+           }}
+           className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white py-4 rounded-2xl font-bold text-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
+         >
+           {currentIndex === theme.words.length - 1 ? '完成主題' : '下一個'}
+         </button>
+      </div>
+    </div>
+  );
+}
 
-          const playQuestionAudio = (text) => {
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = 'zh-HK';
-            window.speechSynthesis.speak(u);
-          };
+// --- 5. 測試區 ---
+function QuizZone({ grade, onExit }) {
+  const [quizState, setQuizState] = useState('intro'); // intro, playing, result
+  const [currentQ, setCurrentQ] = useState(0);
+  const [score, setScore] = useState(0);
+  const [questions, setQuestions] = useState([]);
+  const [showFeedback, setShowFeedback] = useState(null); // 'correct', 'wrong'
 
-          if (quizState === 'intro') {
-            return (
-              <div className="flex flex-col items-center justify-center h-full animate-fadeIn pt-10 text-center">
-                <div className="bg-rose-100 p-10 rounded-full mb-8 animate-bounce">
-                    <Award className="text-rose-500 w-32 h-32" />
-                </div>
-                <h2 className="text-5xl font-bold text-slate-800 mb-6">準備好接受挑戰了嗎？</h2>
-                <p className="text-2xl text-slate-500 mb-12">我們將進行 5 題小測驗！</p>
-                <button 
-                  onClick={() => setQuizState('playing')}
-                  className="bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white text-3xl font-bold py-6 px-16 rounded-full shadow-2xl transition-transform hover:scale-105"
-                >
-                  開始測試
-                </button>
-              </div>
-            );
-          }
+  // 產生題目
+  useEffect(() => {
+    if (quizState === 'intro') {
+      const allWords = curriculumData[grade].themes.flatMap(t => t.words);
+      // 確保題目足夠，若詞彙少於5個則取全部
+      const questionCount = Math.min(5, allWords.length);
+      const shuffled = [...allWords].sort(() => 0.5 - Math.random());
+      
+      const selected = shuffled.slice(0, questionCount).map(word => {
+        const distractors = allWords.filter(w => w.char !== word.char)
+                                    .sort(() => 0.5 - Math.random())
+                                    .slice(0, 2);
+        const options = [word, ...distractors].sort(() => 0.5 - Math.random());
+        // 隨機題型: 
+        // 'text-to-image': 顯示文字，選圖片 (Emoji)
+        // 'audio-to-image': 播放聲音，選圖片 (Emoji)
+        const type = Math.random() > 0.5 ? 'text-to-image' : 'audio-to-image';
+        return { answer: word, options, type };
+      });
+      setQuestions(selected);
+    }
+  }, [grade, quizState]);
 
-          if (quizState === 'result') {
-            const percentage = (score / questions.length) * 100;
-            return (
-              <div className="flex flex-col items-center justify-center animate-fadeIn pt-10">
-                <h2 className="text-4xl font-bold text-slate-700 mb-10">測試完成！</h2>
-                <div className="bg-white p-12 rounded-[3rem] shadow-2xl text-center border-8 border-yellow-200">
-                   <div className="text-8xl mb-6 animate-pulse-custom">{percentage === 100 ? '🏆' : percentage >= 60 ? '👍' : '💪'}</div>
-                   <div className="text-6xl font-bold text-slate-800 mb-4">{score} / {questions.length}</div>
-                   <p className="text-slate-500 text-2xl font-medium">
-                     {percentage === 100 ? "太厲害了！全對！" : percentage >= 60 ? "做得很好！" : "繼續加油！"}
-                   </p>
-                </div>
-                <div className="flex gap-6 mt-12">
-                    <button onClick={onExit} className="bg-white hover:bg-slate-50 text-slate-700 font-bold py-4 px-10 rounded-full text-xl shadow-lg border border-slate-200">
-                        返回目錄
-                    </button>
-                    <button onClick={() => { setQuizState('intro'); setCurrentQ(0); setScore(0); }} className="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-4 px-10 rounded-full text-xl shadow-lg">
-                        再玩一次
-                    </button>
-                </div>
-              </div>
-            );
-          }
+  const handleAnswer = (option) => {
+    if (showFeedback) return;
 
-          const qData = questions[currentQ];
-          return (
-            <div className="max-w-2xl mx-auto animate-fadeIn">
-              <div className="flex justify-between items-center mb-8 px-4">
-                <span className="text-slate-500 font-bold text-xl">第 {currentQ + 1} 題</span>
-                <div className="flex gap-2">
-                    {[...Array(questions.length)].map((_, i) => (
-                        <div key={i} className={`h-3 w-10 rounded-full transition-colors duration-300 ${i < currentQ ? 'bg-emerald-400' : i === currentQ ? 'bg-blue-500' : 'bg-slate-200'}`}></div>
-                    ))}
-                </div>
-              </div>
+    const isCorrect = option.char === questions[currentQ].answer.char;
+    if (isCorrect) setScore(s => s + 1);
+    
+    setShowFeedback(isCorrect ? 'correct' : 'wrong');
+    playSound(isCorrect ? 'correct' : 'wrong');
 
-              <div className="bg-white/90 backdrop-blur rounded-[3rem] p-10 shadow-2xl border-4 border-white min-h-[400px] flex flex-col items-center justify-center">
-                
-                {qData.type === 'text-to-image' ? (
-                   <div className="text-center w-full">
-                     <span className="text-slate-400 text-base font-bold tracking-widest uppercase mb-4 block bg-slate-100 py-1 px-4 rounded-full w-max mx-auto">看字選圖</span>
-                     <h2 className="text-7xl md:text-8xl font-bold text-slate-800 mb-10 drop-shadow-sm">{qData.answer.char}</h2>
-                   </div>
-                ) : (
-                   <div className="text-center w-full">
-                     <span className="text-slate-400 text-base font-bold tracking-widest uppercase mb-4 block bg-slate-100 py-1 px-4 rounded-full w-max mx-auto">聆聽選圖</span>
-                     <button 
-                       onClick={() => playQuestionAudio(qData.answer.char)}
-                       className="bg-blue-500 hover:bg-blue-600 text-white w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-10 shadow-xl animate-pulse hover:animate-none hover:scale-105 transition-transform"
-                     >
-                        <Volume2 size={64} />
-                     </button>
-                     <p className="text-slate-500 text-lg mb-4">點擊喇叭聆聽題目</p>
-                   </div>
-                )}
+    setTimeout(() => {
+      setShowFeedback(null);
+      if (currentQ < questions.length - 1) {
+        setCurrentQ(q => q + 1);
+      } else {
+        setQuizState('result');
+      }
+    }, 1500);
+  };
 
-                {/* 測試區選項 - 顯示 Emoji (作為圖片) */}
-                <div className="grid grid-cols-3 gap-6 w-full mt-4">
-                   {qData.options.map((opt, idx) => (
-                     <button
-                       key={idx}
-                       disabled={showFeedback !== null}
-                       onClick={() => handleAnswer(opt)}
-                       className={`aspect-square rounded-[2rem] flex items-center justify-center shadow-lg transition-all transform hover:scale-105 border-4 overflow-hidden relative bg-slate-50 hover:bg-white
-                         ${showFeedback && opt.char === qData.answer.char ? 'border-green-500 ring-4 ring-green-200 bg-green-50' : ''}
-                         ${showFeedback === 'wrong' && opt.char !== qData.answer.char ? 'opacity-50 grayscale' : ''}
-                         ${!showFeedback ? 'hover:border-blue-300 border-transparent' : ''}
-                       `}
-                     >
-                       <span className="text-6xl md:text-7xl drop-shadow-md select-none">{opt.emoji}</span>
-                     </button>
-                   ))}
-                </div>
+  const playSound = (type) => {
+     if ('speechSynthesis' in window) {
+         window.speechSynthesis.cancel();
+         const msg = type === 'correct' ? "答對了" : "答錯了";
+         const u = new SpeechSynthesisUtterance(msg);
+         u.lang = 'zh-HK'; 
+         u.rate = 1.2;
+         window.speechSynthesis.speak(u);
+     }
+  };
 
-                <div className="h-12 mt-8 flex items-center justify-center">
-                   {showFeedback === 'correct' && <span className="text-green-500 font-bold text-3xl flex items-center gap-2 animate-bounce"><CheckCircle size={32} /> 答對了！</span>}
-                   {showFeedback === 'wrong' && <span className="text-red-500 font-bold text-3xl flex items-center gap-2 animate-shake"><XCircle size={32} /> 答錯了！</span>}
-                </div>
+  const playQuestionAudio = (text) => {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-HK';
+    window.speechSynthesis.speak(u);
+  };
 
-              </div>
-            </div>
-          );
-        }
+  if (quizState === 'intro') {
+    return (
+      <div className="flex flex-col items-center justify-center h-full animate-fadeIn pt-10 text-center">
+        <div className="bg-rose-100 p-10 rounded-full mb-8 animate-bounce">
+            <Award className="text-rose-500 w-32 h-32" />
+        </div>
+        <h2 className="text-5xl font-bold text-slate-800 mb-6">準備好接受挑戰了嗎？</h2>
+        <p className="text-2xl text-slate-500 mb-12">我們將進行 5 題小測驗！</p>
+        <button 
+          onClick={() => setQuizState('playing')}
+          className="bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white text-3xl font-bold py-6 px-16 rounded-full shadow-2xl transition-transform hover:scale-105"
+        >
+          開始測試
+        </button>
+      </div>
+    );
+  }
 
-        // 6. 啟動 React
+  if (quizState === 'result') {
+    const percentage = (score / questions.length) * 100;
+    return (
+      <div className="flex flex-col items-center justify-center animate-fadeIn pt-10">
+        <h2 className="text-4xl font-bold text-slate-700 mb-10">測試完成！</h2>
+        <div className="bg-white p-12 rounded-[3rem] shadow-2xl text-center border-8 border-yellow-200">
+           <div className="text-8xl mb-6 animate-pulse-custom">{percentage === 100 ? '🏆' : percentage >= 60 ? '👍' : '💪'}</div>
+           <div className="text-6xl font-bold text-slate-800 mb-4">{score} / {questions.length}</div>
+           <p className="text-slate-500 text-2xl font-medium">
+             {percentage === 100 ? "太厲害了！全對！" : percentage >= 60 ? "做得很好！" : "繼續加油！"}
+           </p>
+        </div>
+        <div className="flex gap-6 mt-12">
+            <button onClick={onExit} className="bg-white hover:bg-slate-50 text-slate-700 font-bold py-4 px-10 rounded-full text-xl shadow-lg border border-slate-200">
+                返回目錄
+            </button>
+            <button onClick={() => { setQuizState('intro'); setCurrentQ(0); setScore(0); }} className="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-4 px-10 rounded-full text-xl shadow-lg">
+                再玩一次
+            </button>
+        </div>
+      </div>
+    );
+  }
+
+  const qData = questions[currentQ];
+  return (
+    <div className="max-w-2xl mx-auto animate-fadeIn">
+      <div className="flex justify-between items-center mb-8 px-4">
+        <span className="text-slate-500 font-bold text-xl">第 {currentQ + 1} 題</span>
+        <div className="flex gap-2">
+            {[...Array(questions.length)].map((_, i) => (
+                <div key={i} className={`h-3 w-10 rounded-full transition-colors duration-300 ${i < currentQ ? 'bg-emerald-400' : i === currentQ ? 'bg-blue-500' : 'bg-slate-200'}`}></div>
+            ))}
+        </div>
+      </div>
+
+      <div className="bg-white/90 backdrop-blur rounded-[3rem] p-10 shadow-2xl border-4 border-white min-h-[400px] flex flex-col items-center justify-center">
+        
+        {qData.type === 'text-to-image' ? (
+           <div className="text-center w-full">
+             <span className="text-slate-400 text-base font-bold tracking-widest uppercase mb-4 block bg-slate-100 py-1 px-4 rounded-full w-max mx-auto">看字選圖</span>
+             <h2 className="text-7xl md:text-8xl font-bold text-slate-800 mb-10 drop-shadow-sm">{qData.answer.char}</h2>
+           </div>
+        ) : (
+           <div className="text-center w-full">
+             <span className="text-slate-400 text-base font-bold tracking-widest uppercase mb-4 block bg-slate-100 py-1 px-4 rounded-full w-max mx-auto">聆聽選圖</span>
+             <button 
+               onClick={() => playQuestionAudio(qData.answer.char)}
+               className="bg-blue-500 hover:bg-blue-600 text-white w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-10 shadow-xl animate-pulse hover:animate-none hover:scale-105 transition-transform"
+             >
+                <Volume2 size={64} />
+             </button>
+             <p className="text-slate-500 text-lg mb-4">點擊喇叭聆聽題目</p>
+           </div>
+        )}
+
+        {/* 測試區選項 - 顯示 Emoji (作為圖片) */}
+        <div className="grid grid-cols-3 gap-6 w-full mt-4">
+           {qData.options.map((opt, idx) => (
+             <button
+               key={idx}
+               disabled={showFeedback !== null}
+               onClick={() => handleAnswer(opt)}
+               className={`aspect-square rounded-[2rem] flex items-center justify-center shadow-lg transition-all transform hover:scale-105 border-4 overflow-hidden relative bg-slate-50 hover:bg-white
+                 ${showFeedback && opt.char === qData.answer.char ? 'border-green-500 ring-4 ring-green-200 bg-green-50' : ''}
+                 ${showFeedback === 'wrong' && opt.char !== qData.answer.char ? 'opacity-50 grayscale' : ''}
+                 ${!showFeedback ? 'hover:border-blue-300 border-transparent' : ''}
+               `}
+             >
+               <span className="text-6xl md:text-7xl drop-shadow-md select-none">{opt.emoji}</span>
+             </button>
+           ))}
+        </div>
+
+        <div className="h-12 mt-8 flex items-center justify-center">
+           {showFeedback === 'correct' && <span className="text-green-500 font-bold text-3xl flex items-center gap-2 animate-bounce"><CheckCircle size={32} /> 答對了！</span>}
+           {showFeedback === 'wrong' && <span className="text-red-500 font-bold text-3xl flex items-center gap-2 animate-shake"><XCircle size={32} /> 答錯了！</span>}
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
         const root = createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
